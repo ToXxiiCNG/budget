@@ -2,7 +2,7 @@
 // Caches the app shell so it works fully offline.
 // Bump CACHE_NAME when you deploy a new version to force a refresh.
 
-const CACHE_NAME = 'budget-v1';
+const CACHE_NAME = 'budget-v2';
 const SHELL = ['./','./index.html'];
 
 self.addEventListener('install', e => {
