@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Budget">
 <meta name="description" content="Personal budget, finances & Pokémon collection tracker">
 <title>Budget</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -219,6 +220,29 @@ button{font-family:inherit;cursor:pointer;}
 <body>
 
 <script id="__SNAPSHOT__" type="application/json">null</script>
+
+<!-- ══════════ AUTH SCREEN ══════════ -->
+<div id="auth-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px 32px;max-width:380px;width:calc(100% - 32px);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.08);">
+    <div style="font-size:36px;margin-bottom:10px;">💸</div>
+    <h1 style="font-size:22px;font-weight:700;margin-bottom:8px;">Budget</h1>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.5;">Enter your email to sign in.<br>We'll send a magic link — no password needed.</p>
+    <div id="auth-form">
+      <input type="email" id="auth-email" placeholder="your@email.com"
+        style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2);color:var(--text1);font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;box-sizing:border-box;"
+        onkeydown="if(event.key==='Enter')sendMagicLink()">
+      <button onclick="sendMagicLink()"
+        style="width:100%;padding:11px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;">
+        Send magic link →
+      </button>
+      <p id="auth-error" style="font-size:12px;color:var(--red);margin-top:8px;display:none;"></p>
+    </div>
+    <div id="auth-sent" style="display:none;">
+      <p style="font-size:15px;color:var(--green);font-weight:600;margin-bottom:8px;">✓ Check your email!</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.5;">Click the link we sent to sign in.<br>Come back to this tab after clicking it.</p>
+    </div>
+  </div>
+</div>
 <div class="chart-tooltip" id="chartTooltip"></div>
 
 <!-- ══════════ EXCEL-STYLE SHEET BAR ══════════ -->
@@ -229,6 +253,10 @@ button{font-family:inherit;cursor:pointer;}
   <div class="sheet-name-row">
     <h1>Budget</h1>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div id="user-info" style="display:none;align-items:center;gap:6px;font-size:11px;color:var(--text3);">
+        <span id="user-email"></span>
+        <button onclick="signOut()" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:inherit;padding:0;">sign out</button>
+      </div>
       <button class="undo-btn" id="undoBtn" onclick="undo()" title="Undo last change on this tab" disabled>↶ Undo</button>
       <button class="undo-btn" onclick="downloadSnapshot()" title="Download blank template — all values $0, safe to share">⤓ Share blank</button>
       <div class="save-ind" id="saveInd"><div class="save-dot" id="saveDot"></div><span id="saveTxt">No saved data</span></div>
@@ -1404,21 +1432,145 @@ function updateAll(){updateBudget();updateFinances();updateCards();}
 // fin-inp listener
 document.querySelectorAll('.fin-inp').forEach(el=>el.addEventListener('input',()=>{updateFinances();schedSave();}));
 
-// ── BOOT ─────────────────────────────────────────────────────
-const _embedded=getEmbeddedSnapshot();
-if(_embedded&&_embedded.sheets&&_embedded.sheets.length&&!localStorage.getItem(MASTER_KEY)){
-  sheets=_embedded.sheets;activeSheetId=_embedded.activeSheetId;
-  if(!sheets.find(s=>s.id===activeSheetId)) activeSheetId=sheets[sheets.length-1].id;
-  sheets.forEach(s=>{if(s.customName===undefined)s.customName='';});
-  applyData(sheets.find(s=>s.id===activeSheetId).data);
-  saveAll();flashSaved('Opened snapshot · '+(sheets.find(s=>s.id===activeSheetId).customName||fmtTabDate(sheets.find(s=>s.id===activeSheetId).updatedAt)));
-}else if(!loadFromStorage()){
-  initFirstSheet();
+// ── SUPABASE ──────────────────────────────────────────────────
+const SB_URL  = 'https://vxruweegexvjpblppuzt.supabase.co';
+const SB_KEY  = 'sb_publishable_G-LbU0BwRNt8_IqXw3T0Sg_jJ7jxbny';
+const sb      = supabase.createClient(SB_URL, SB_KEY);
+let currentUser = null;
+
+function showAuthScreen(){
+  const el=document.getElementById('auth-screen');
+  el.style.display='flex';
 }
-renderSheetBar();
-['income','housing','fixed','variable','savings'].forEach(renderSection);
-['taxable','roth','watchlist'].forEach(renderHoldings);
-renderCCDebt();updateAll();resetUndo();
+function hideAuthScreen(){
+  const el=document.getElementById('auth-screen');
+  el.style.display='none';
+}
+function updateUserInfo(){
+  const wrap=document.getElementById('user-info');
+  const emailEl=document.getElementById('user-email');
+  if(currentUser){
+    wrap.style.display='flex';
+    emailEl.textContent=currentUser.email;
+  }else{
+    wrap.style.display='none';
+  }
+}
+
+async function sendMagicLink(){
+  const email=document.getElementById('auth-email').value.trim();
+  const errEl=document.getElementById('auth-error');
+  errEl.style.display='none';
+  if(!email){errEl.textContent='Please enter your email.';errEl.style.display='block';return;}
+  const {error}=await sb.auth.signInWithOtp({
+    email,
+    options:{emailRedirectTo:window.location.href}
+  });
+  if(error){errEl.textContent=error.message;errEl.style.display='block';}
+  else{document.getElementById('auth-form').style.display='none';document.getElementById('auth-sent').style.display='block';}
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser=null;
+  updateUserInfo();
+  showAuthScreen();
+}
+
+async function saveToCloud(){
+  if(!currentUser) return;
+  try{
+    await sb.from('budget_data').upsert({
+      user_id: currentUser.id,
+      sheets: {sheets:JSON.parse(JSON.stringify(sheets)),activeSheetId},
+      updated_at: new Date().toISOString()
+    },{onConflict:'user_id'});
+  }catch(e){console.log('Cloud save failed:',e.message);}
+}
+
+async function loadFromCloud(){
+  if(!currentUser) return false;
+  try{
+    const{data,error}=await sb.from('budget_data')
+      .select('sheets')
+      .eq('user_id',currentUser.id)
+      .single();
+    if(data&&data.sheets&&data.sheets.sheets&&data.sheets.sheets.length){
+      sheets=data.sheets.sheets;
+      activeSheetId=data.sheets.activeSheetId;
+      sheets.forEach(s=>{
+        if(s.customName===undefined)s.customName='';
+        if(!s.createdAt)s.createdAt=s.updatedAt;
+      });
+      if(!sheets.find(s=>s.id===activeSheetId))activeSheetId=sheets[sheets.length-1].id;
+      const sh=sheets.find(s=>s.id===activeSheetId);
+      applyData(sh.data);
+      flashSaved('Synced from cloud');
+      return true;
+    }
+  }catch(e){console.log('Cloud load failed:',e.message);}
+  return false;
+}
+
+// Patch saveAll to also push to cloud
+const _origSaveAll = saveAll;
+function saveAll(){
+  localStorage.setItem(MASTER_KEY,JSON.stringify({sheets,activeSheetId}));
+  saveToCloud();
+}
+
+// ── BOOT ─────────────────────────────────────────────────────
+async function boot(){
+  // Check for existing session (magic link sets this)
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    currentUser=session.user;
+    updateUserInfo();
+    hideAuthScreen();
+    const cloudLoaded=await loadFromCloud();
+    if(!cloudLoaded){
+      const _embedded=getEmbeddedSnapshot();
+      if(_embedded&&_embedded.sheets&&_embedded.sheets.length&&!localStorage.getItem(MASTER_KEY)){
+        sheets=_embedded.sheets;activeSheetId=_embedded.activeSheetId;
+        if(!sheets.find(s=>s.id===activeSheetId))activeSheetId=sheets[sheets.length-1].id;
+        sheets.forEach(s=>{if(s.customName===undefined)s.customName='';if(!s.createdAt)s.createdAt=s.updatedAt;});
+        applyData(sheets.find(s=>s.id===activeSheetId).data);
+        await saveToCloud();
+        flashSaved('Data uploaded to cloud');
+      }else if(!loadFromStorage()){
+        initFirstSheet();
+        await saveToCloud();
+      }
+    }
+  }else{
+    showAuthScreen();
+    // Still listen for magic link callback
+    sb.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_IN'&&session){
+        currentUser=session.user;
+        updateUserInfo();
+        hideAuthScreen();
+        const cloudLoaded=await loadFromCloud();
+        if(!cloudLoaded){
+          if(!loadFromStorage()) initFirstSheet();
+          await saveToCloud();
+        }
+        renderSheetBar();
+        ['income','housing','fixed','variable','savings'].forEach(renderSection);
+        ['taxable','roth','watchlist'].forEach(renderHoldings);
+        renderCCDebt();updateAll();resetUndo();
+      }
+    });
+    return; // Don't render the app yet
+  }
+
+  renderSheetBar();
+  ['income','housing','fixed','variable','savings'].forEach(renderSection);
+  ['taxable','roth','watchlist'].forEach(renderHoldings);
+  renderCCDebt();updateAll();resetUndo();
+}
+
+boot();
 </script>
 
 <div style="margin-top:32px;padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
