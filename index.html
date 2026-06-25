@@ -835,7 +835,7 @@ function saveCurrentSheet(flash=true){
   }
 }
 
-function saveAll(){ localStorage.setItem(MASTER_KEY,JSON.stringify({sheets,activeSheetId})); }
+function saveAll(){ saveToCloud(); } // cloud is the save — defined fully in the Supabase section below
 
 // ── ZERO DATA (for blank downloads) ──────────────────────────
 function zeroData(data){
@@ -930,6 +930,7 @@ function resetAll(){
   ['income','housing','fixed','variable','savings'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
   renderCCDebt(); updateAll(); resetUndo();
+  saveToCloud(); // wipe cloud too so old data doesn't come back on reload
   document.getElementById('saveInd').classList.remove('saved');
   document.getElementById('saveDot').style.background='';
   document.getElementById('saveTxt').textContent='No saved data';
@@ -1032,7 +1033,7 @@ function schedSave(tabOverride){
     const current=getTabSnap(tab),state=tabUndoMap[tab];
     if(state.after!==current){state.before=state.after;state.after=current;}
     saveCurrentSheet(true);updateUndoBtn();
-  },800);
+  },500);
 }
 
 // ── PER-TAB RESET ────────────────────────────────────────────
@@ -1477,68 +1478,60 @@ async function signOut(){
   showAuthScreen();
 }
 
+// ── CLOUD SYNC ────────────────────────────────────────────────
+// Cloud is the only source of truth — works like any normal website.
+// Every change saves to Supabase. Every page load reads from Supabase.
+// No local-vs-cloud comparison. No timestamp logic.
+
 async function saveToCloud(){
   if(!currentUser) return;
   try{
     const{error}=await sb.from('budget_data').upsert({
-      user_id: currentUser.id,
-      sheets: {sheets:JSON.parse(JSON.stringify(sheets)),activeSheetId},
-      updated_at: new Date().toISOString()
+      user_id:currentUser.id,
+      sheets:{sheets:JSON.parse(JSON.stringify(sheets)),activeSheetId},
+      updated_at:new Date().toISOString()
     },{onConflict:'user_id'});
-    if(error) console.log('[Budget] Cloud save error:',error.message);
-  }catch(e){console.log('[Budget] Cloud save failed:',e.message);}
+    if(error) console.error('[Budget] save error:',error.message);
+  }catch(e){console.error('[Budget] save failed:',e.message);}
 }
 
-// Patch saveAll to also push to cloud
-const _origSaveAll = saveAll;
-function saveAll(){
-  localStorage.setItem(MASTER_KEY,JSON.stringify({sheets,activeSheetId}));
-  saveToCloud();
-}
+// Override saveAll — cloud is the save target
+function saveAll(){ saveToCloud(); }
 
-// ── Safety save on browser close ──────────────────────────────
+// On browser close: flush latest values so in-flight save has correct data
 window.addEventListener('beforeunload',()=>{
   const sh=sheets.find(s=>s.id===activeSheetId);
-  if(sh) sh.data=liveToData();
-  if(sheets.length) localStorage.setItem(MASTER_KEY,JSON.stringify({sheets,activeSheetId}));
+  if(sh){sh.data=liveToData();sh.updatedAt=new Date().toISOString();}
 });
 
-// ── Load: cloud always wins, localStorage is fallback only ─────
-async function smartLoad(){
-  // 1. Try cloud first — always authoritative for cross-device sync
+// ── Load from Supabase (always) ───────────────────────────────
+async function loadData(){
   try{
-    const{data}=await sb.from('budget_data')
-      .select('sheets,updated_at')
+    const{data,error}=await sb.from('budget_data')
+      .select('sheets')
       .eq('user_id',currentUser.id)
       .single();
     if(data&&data.sheets&&data.sheets.sheets&&data.sheets.sheets.length){
       sheets=data.sheets.sheets;
       activeSheetId=data.sheets.activeSheetId;
-      sheets.forEach(s=>{if(s.customName===undefined)s.customName='';if(!s.createdAt)s.createdAt=s.updatedAt;});
+      sheets.forEach(s=>{
+        if(s.customName===undefined)s.customName='';
+        if(!s.createdAt)s.createdAt=s.updatedAt;
+      });
       if(!sheets.find(s=>s.id===activeSheetId))activeSheetId=sheets[sheets.length-1].id;
       applyData(sheets.find(s=>s.id===activeSheetId).data);
-      // Keep localStorage in sync with cloud
-      localStorage.setItem(MASTER_KEY,JSON.stringify({sheets,activeSheetId}));
-      flashSaved('Synced from cloud ☁');
-      return;
+      flashSaved('Synced ☁');
+      return true;
     }
-  }catch(e){console.log('[Budget] Cloud unavailable, using local:',e.message);}
+  }catch(e){console.log('[Budget] load:',e.message);}
+  return false;
+}
 
-  // 2. Cloud had no data or failed — fall back to localStorage/embedded
-  const _embedded=getEmbeddedSnapshot();
-  if(_embedded&&_embedded.sheets&&_embedded.sheets.length&&!localStorage.getItem(MASTER_KEY)){
-    sheets=_embedded.sheets;activeSheetId=_embedded.activeSheetId;
-    if(!sheets.find(s=>s.id===activeSheetId))activeSheetId=sheets[sheets.length-1].id;
-    sheets.forEach(s=>{if(s.customName===undefined)s.customName='';if(!s.createdAt)s.createdAt=s.updatedAt;});
-    applyData(sheets.find(s=>s.id===activeSheetId).data);
-    await saveToCloud();
-    flashSaved('Data uploaded to cloud');
-  }else if(loadFromStorage()){
-    await saveToCloud(); // push local up to cloud
-  }else{
-    initFirstSheet();
-    await saveToCloud();
-  }
+function renderAll(){
+  renderSheetBar();
+  ['income','housing','fixed','variable','savings'].forEach(renderSection);
+  ['taxable','roth','watchlist'].forEach(renderHoldings);
+  renderCCDebt();updateAll();resetUndo();
 }
 
 // ── BOOT ─────────────────────────────────────────────────────
@@ -1548,7 +1541,9 @@ async function boot(){
     currentUser=session.user;
     updateUserInfo();
     hideAuthScreen();
-    await smartLoad();
+    const ok=await loadData();
+    if(!ok){initFirstSheet();await saveToCloud();}
+    renderAll();
   }else{
     showAuthScreen();
     sb.auth.onAuthStateChange(async(event,session)=>{
@@ -1556,19 +1551,12 @@ async function boot(){
         currentUser=session.user;
         updateUserInfo();
         hideAuthScreen();
-        await smartLoad();
-        renderSheetBar();
-        ['income','housing','fixed','variable','savings'].forEach(renderSection);
-        ['taxable','roth','watchlist'].forEach(renderHoldings);
-        renderCCDebt();updateAll();resetUndo();
+        const ok=await loadData();
+        if(!ok){initFirstSheet();await saveToCloud();}
+        renderAll();
       }
     });
-    return;
   }
-  renderSheetBar();
-  ['income','housing','fixed','variable','savings'].forEach(renderSection);
-  ['taxable','roth','watchlist'].forEach(renderHoldings);
-  renderCCDebt();updateAll();resetUndo();
 }
 
 boot();
