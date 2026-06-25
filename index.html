@@ -1496,73 +1496,49 @@ function saveAll(){
   saveToCloud();
 }
 
-// ── Safety save on browser close (catches async race condition) ──
+// ── Safety save on browser close ──────────────────────────────
 window.addEventListener('beforeunload',()=>{
   const sh=sheets.find(s=>s.id===activeSheetId);
   if(sh) sh.data=liveToData();
   if(sheets.length) localStorage.setItem(MASTER_KEY,JSON.stringify({sheets,activeSheetId}));
 });
 
-// ── Smart load: returns the newer of cloud vs localStorage ─────
-function getLocalTime(){
-  try{
-    const raw=localStorage.getItem(MASTER_KEY);
-    if(!raw) return 0;
-    const p=JSON.parse(raw);
-    const times=(p.sheets||[]).map(s=>new Date(s.updatedAt||0).getTime());
-    return times.length?Math.max(...times):0;
-  }catch(e){return 0;}
-}
-
+// ── Load: cloud always wins, localStorage is fallback only ─────
 async function smartLoad(){
-  // 1. Fetch cloud row (includes updated_at for comparison)
-  let cloudData=null, cloudTime=0;
+  // 1. Try cloud first — always authoritative for cross-device sync
   try{
     const{data}=await sb.from('budget_data')
       .select('sheets,updated_at')
       .eq('user_id',currentUser.id)
       .single();
     if(data&&data.sheets&&data.sheets.sheets&&data.sheets.sheets.length){
-      cloudData=data.sheets;
-      cloudTime=new Date(data.updated_at).getTime();
+      sheets=data.sheets.sheets;
+      activeSheetId=data.sheets.activeSheetId;
+      sheets.forEach(s=>{if(s.customName===undefined)s.customName='';if(!s.createdAt)s.createdAt=s.updatedAt;});
+      if(!sheets.find(s=>s.id===activeSheetId))activeSheetId=sheets[sheets.length-1].id;
+      applyData(sheets.find(s=>s.id===activeSheetId).data);
+      // Keep localStorage in sync with cloud
+      localStorage.setItem(MASTER_KEY,JSON.stringify({sheets,activeSheetId}));
+      flashSaved('Synced from cloud ☁');
+      return;
     }
-  }catch(e){console.log('[Budget] Cloud fetch:',e.message);}
+  }catch(e){console.log('[Budget] Cloud unavailable, using local:',e.message);}
 
-  const localTime=getLocalTime();
-
-  // 2. Use whichever source is newer
-  if(cloudData&&cloudTime>=localTime){
-    // Cloud wins
-    sheets=cloudData.sheets;
-    activeSheetId=cloudData.activeSheetId;
-    sheets.forEach(s=>{if(s.customName===undefined)s.customName='';if(!s.createdAt)s.createdAt=s.updatedAt;});
-    if(!sheets.find(s=>s.id===activeSheetId))activeSheetId=sheets[sheets.length-1].id;
-    applyData(sheets.find(s=>s.id===activeSheetId).data);
-    flashSaved('Synced from cloud ☁');
-    return true;
-  }else if(localTime>0){
-    // localStorage is newer — load it, then push to cloud
-    console.log('[Budget] localStorage is newer than cloud — loading local, pushing to cloud');
-    if(loadFromStorage()){
-      await saveToCloud(); // bring cloud up to date
-      return true;
-    }
-  }
-
-  // 3. Nothing found — try embedded snapshot or fresh sheet
+  // 2. Cloud had no data or failed — fall back to localStorage/embedded
   const _embedded=getEmbeddedSnapshot();
-  if(_embedded&&_embedded.sheets&&_embedded.sheets.length){
+  if(_embedded&&_embedded.sheets&&_embedded.sheets.length&&!localStorage.getItem(MASTER_KEY)){
     sheets=_embedded.sheets;activeSheetId=_embedded.activeSheetId;
     if(!sheets.find(s=>s.id===activeSheetId))activeSheetId=sheets[sheets.length-1].id;
     sheets.forEach(s=>{if(s.customName===undefined)s.customName='';if(!s.createdAt)s.createdAt=s.updatedAt;});
     applyData(sheets.find(s=>s.id===activeSheetId).data);
     await saveToCloud();
     flashSaved('Data uploaded to cloud');
+  }else if(loadFromStorage()){
+    await saveToCloud(); // push local up to cloud
   }else{
     initFirstSheet();
     await saveToCloud();
   }
-  return true;
 }
 
 // ── BOOT ─────────────────────────────────────────────────────
