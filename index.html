@@ -798,14 +798,12 @@ function renderSheetBar(){
 
     tab.appendChild(labelWrap);
 
-    if(sheets.length>1){
-      const del = document.createElement('button');
-      del.className = 'sheet-tab-del';
-      del.title = 'Delete this sheet';
-      del.textContent = '×';
-      del.onclick = e=>{ e.stopPropagation(); deleteSheet(sh.id); };
-      tab.appendChild(del);
-    }
+    const del = document.createElement('button');
+    del.className = 'sheet-tab-del';
+    del.title = 'Delete this sheet';
+    del.textContent = '×';
+    del.onclick = e=>{ e.stopPropagation(); deleteSheet(sh.id); };
+    tab.appendChild(del);
     bar.appendChild(tab);
   });
 
@@ -859,19 +857,25 @@ function newSheet(){
 }
 
 function deleteSheet(id){
-  if(sheets.length<=1){alert('You need at least one sheet.');return;}
   const idx=sheets.findIndex(s=>s.id===id);
   if(idx===-1) return;
+  const name=sheets[idx].customName||fmtTabDate(sheets[idx].createdAt||sheets[idx].updatedAt);
+  if(!confirm(`Delete sheet "${name}"? This cannot be undone.`)) return;
   sheets.splice(idx,1);
-  if(activeSheetId===id){
+  if(sheets.length===0){
+    // Last sheet deleted — create a fresh blank one
+    const freshId='sh_'+Date.now(), now=new Date().toISOString(), freshData=freshSheetData();
+    sheets=[{id:freshId, name:fmtTabDate(now), createdAt:now, updatedAt:now, data:freshData, customName:''}];
+    activeSheetId=freshId;
+    applyData(freshData);
+  } else if(activeSheetId===id){
     const ni=Math.min(idx,sheets.length-1);
     activeSheetId=sheets[ni].id;
     applyData(sheets[ni].data);
-    ['income','housing','fixed','variable'].forEach(renderSection);
-    ['taxable','roth','watchlist'].forEach(renderHoldings);
-    renderCCDebt();
-    updateAll();
   }
+  ['income','housing','fixed','variable'].forEach(renderSection);
+  ['taxable','roth','watchlist'].forEach(renderHoldings);
+  renderCCDebt(); updateAll();
   saveAll(); renderSheetBar(); resetUndo();
 }
 
