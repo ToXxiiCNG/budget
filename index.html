@@ -73,7 +73,7 @@ button{font-family:inherit;cursor:pointer;}
 .accent{width:3px;height:12px;border-radius:2px;flex-shrink:0;}
 .mc{background:var(--surface2);border-radius:var(--radius);padding:10px 12px;}
 .mc .mc-label{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:4px;}
-.mc .mc-val{font-size:18px;font-weight:600;}
+.mc .mc-val{font-size:16px;font-weight:600;}
 .progress-track{background:var(--surface2);border-radius:999px;height:5px;overflow:hidden;margin:5px 0 4px;}
 .progress-fill{height:100%;border-radius:999px;transition:width .3s ease;}
 
@@ -269,6 +269,7 @@ button{font-family:inherit;cursor:pointer;}
   <button class="tab active" onclick="switchTab('budget',this)">💸 Budget</button>
   <button class="tab" onclick="switchTab('finances',this)">📊 Finances</button>
   <button class="tab" onclick="switchTab('cards',this)">🃏 Pokémon</button>
+  <button class="tab" onclick="switchTab('timeline',this)">📈 Timeline</button>
 </div>
 
 <!-- ══════════ BUDGET ══════════ -->
@@ -292,13 +293,11 @@ button{font-family:inherit;cursor:pointer;}
       <div class="bar-seg" id="seg-h" style="background:#378ADD;width:0%"></div>
       <div class="bar-seg" id="seg-f" style="background:#7F77DD;width:0%"></div>
       <div class="bar-seg" id="seg-v" style="background:#EF9F27;width:0%"></div>
-      <div class="bar-seg" id="seg-s" style="background:#1D9E75;width:0%"></div>
     </div>
     <div class="legend">
       <div class="leg-item"><div class="leg-dot" style="background:#378ADD;"></div><span style="color:var(--text2);">Housing</span><span style="font-weight:500;margin-left:3px;" id="lh">—</span><span style="color:var(--text3);margin-left:3px;" id="lhp"></span></div>
       <div class="leg-item"><div class="leg-dot" style="background:#7F77DD;"></div><span style="color:var(--text2);">Fixed</span><span style="font-weight:500;margin-left:3px;" id="lf">—</span><span style="color:var(--text3);margin-left:3px;" id="lfp"></span></div>
       <div class="leg-item"><div class="leg-dot" style="background:#EF9F27;"></div><span style="color:var(--text2);">Variable</span><span style="font-weight:500;margin-left:3px;" id="lv">—</span><span style="color:var(--text3);margin-left:3px;" id="lvp"></span></div>
-      <div class="leg-item"><div class="leg-dot" style="background:#1D9E75;"></div><span style="color:var(--text2);">Savings</span><span style="font-weight:500;margin-left:3px;" id="ls">—</span><span style="color:var(--text3);margin-left:3px;" id="lsp"></span></div>
     </div>
   </div>
   <div id="budget-flags"></div>
@@ -330,18 +329,11 @@ button{font-family:inherit;cursor:pointer;}
         <button class="add-btn" onclick="addRow('variable')">+ Add line</button>
         <div class="sec-total"><span class="tl">Total variable</span><span class="tv" style="color:#EF9F27;" id="tot-v">—</span></div>
       </div>
-      <div class="card">
-        <p class="eyebrow"><span class="accent" style="background:#1D9E75;"></span>Savings Goals</p>
-        <div id="savings-rows"></div>
-        <button class="add-btn" onclick="addRow('savings')">+ Add goal</button>
-        <div class="sec-total"><span class="tl">Total saving / mo</span><span class="tv" style="color:#1D9E75;" id="tot-s">—</span></div>
-      </div>
       <div class="card" style="margin-bottom:0;">
         <p class="eyebrow"><span class="accent" style="background:#6B7280;"></span>Annual View</p>
         <div class="grid2" style="gap:8px;">
           <div class="mc"><p class="mc-label">Take-home</p><p class="mc-val" id="ann-inc">—</p></div>
           <div class="mc"><p class="mc-label">Expenses</p><p class="mc-val" id="ann-exp">—</p></div>
-          <div class="mc"><p class="mc-label">Into savings</p><p class="mc-val" style="color:#1D9E75;" id="ann-sav">—</p></div>
           <div class="mc"><p class="mc-label">Surplus</p><p class="mc-val" id="ann-sur">—</p></div>
         </div>
       </div>
@@ -364,10 +356,10 @@ button{font-family:inherit;cursor:pointer;}
         <p style="font-size:11px;color:var(--text3);margin-top:4px;">cash + investments − debt &nbsp;·&nbsp; <span class="lb lb-pokemon">🃏 excl. Pokémon</span></p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <div class="mc" style="min-width:100px;"><p class="mc-label">Assets</p><p class="mc-val" style="font-size:16px;" id="nw-assets">—</p></div>
-        <div class="mc" style="min-width:100px;"><p class="mc-label">Invested</p><p class="mc-val" style="font-size:16px;" id="nw-inv">—</p></div>
-        <div class="mc" style="min-width:100px;"><p class="mc-label">Cash</p><p class="mc-val" style="font-size:16px;" id="nw-cash">—</p></div>
-        <div class="mc" style="min-width:100px;"><p class="mc-label">CC Debt</p><p class="mc-val" style="font-size:16px;color:var(--red);" id="nw-cc-debt">—</p></div>
+        <div class="mc" style="min-width:100px;"><p class="mc-label">Assets</p><p class="mc-val" id="nw-assets">—</p></div>
+        <div class="mc" style="min-width:100px;"><p class="mc-label">Invested</p><p class="mc-val" id="nw-inv">—</p></div>
+        <div class="mc" style="min-width:100px;"><p class="mc-label">Cash</p><p class="mc-val" id="nw-cash">—</p></div>
+        <div class="mc" style="min-width:100px;"><p class="mc-label">CC Debt</p><p class="mc-val" style="color:var(--red);" id="nw-cc-debt">—</p></div>
       </div>
     </div>
     <div class="bar-track" style="margin-top:14px;margin-bottom:8px;" id="asset-bar"></div>
@@ -449,9 +441,9 @@ button{font-family:inherit;cursor:pointer;}
             <p class="mc-label">Total <span class="lb lb-calc">calc</span></p>
             <p class="mc-val" style="font-size:20px;" id="port-total">—</p>
           </div>
-          <div class="mc" style="flex:1;min-width:70px;"><p class="mc-label">Taxable</p><p class="mc-val" style="color:#378ADD;font-size:15px;" id="port-taxable">—</p></div>
-          <div class="mc" style="flex:1;min-width:70px;"><p class="mc-label">Roth IRA</p><p class="mc-val" style="color:var(--purple);font-size:15px;" id="port-roth">—</p></div>
-          <div class="mc" style="flex:1;min-width:70px;"><p class="mc-label">401(k)</p><p class="mc-val" style="color:#5DCAA5;font-size:15px;" id="port-k401">—</p></div>
+          <div class="mc" style="flex:1;min-width:70px;"><p class="mc-label">Taxable</p><p class="mc-val" style="color:#378ADD;" id="port-taxable">—</p></div>
+          <div class="mc" style="flex:1;min-width:70px;"><p class="mc-label">Roth IRA</p><p class="mc-val" style="color:var(--purple);" id="port-roth">—</p></div>
+          <div class="mc" style="flex:1;min-width:70px;"><p class="mc-label">401(k)</p><p class="mc-val" style="color:#5DCAA5;" id="port-k401">—</p></div>
         </div>
 
         <!-- Taxable -->
@@ -512,17 +504,50 @@ button{font-family:inherit;cursor:pointer;}
             <div class="cash-val"><span class="sym">$</span><input type="number" data-key="k401" value="0" min="0" class="fin-inp"></div>
           </div>
           <div class="k401-grid" style="margin-top:12px;">
-            <div class="mc"><p class="mc-label">Per paycheck <span class="lb lb-calc">calc</span></p><p class="mc-val" style="font-size:15px;" id="k401-per-check">—</p></div>
-            <div class="mc"><p class="mc-label">Per month <span class="lb lb-calc">calc</span></p><p class="mc-val" style="font-size:15px;" id="k401-per-month">—</p></div>
-            <div class="mc"><p class="mc-label">Annual (you) <span class="lb lb-calc">calc</span></p><p class="mc-val" style="font-size:15px;color:#5DCAA5;" id="k401-annual">—</p></div>
-            <div class="mc"><p class="mc-label">Match / check <span class="lb lb-calc">calc</span></p><p class="mc-val" style="font-size:15px;color:var(--green);" id="k401-match-check">—</p></div>
-            <div class="mc"><p class="mc-label">Match / yr <span class="lb lb-calc">calc</span></p><p class="mc-val" style="font-size:15px;color:var(--green);" id="k401-match-annual">—</p></div>
-            <div class="mc" style="background:var(--green-bg);"><p class="mc-label">Combined annual <span class="lb lb-calc">calc</span></p><p class="mc-val" style="font-size:15px;color:var(--green);" id="k401-combined-annual">—</p></div>
+            <div class="mc"><p class="mc-label">Per paycheck <span class="lb lb-calc">calc</span></p><p class="mc-val" style="id="k401-per-check">—</p></div>
+            <div class="mc"><p class="mc-label">Per month <span class="lb lb-calc">calc</span></p><p class="mc-val" style="id="k401-per-month">—</p></div>
+            <div class="mc"><p class="mc-label">Annual (you) <span class="lb lb-calc">calc</span></p><p class="mc-val" style="color:#5DCAA5;" id="k401-annual">—</p></div>
+            <div class="mc"><p class="mc-label">Match / check <span class="lb lb-calc">calc</span></p><p class="mc-val" style="color:var(--green);" id="k401-match-check">—</p></div>
+            <div class="mc"><p class="mc-label">Match / yr <span class="lb lb-calc">calc</span></p><p class="mc-val" style="color:var(--green);" id="k401-match-annual">—</p></div>
+            <div class="mc" style="background:var(--green-bg);"><p class="mc-label">Combined annual <span class="lb lb-calc">calc</span></p><p class="mc-val" style="color:var(--green);" id="k401-combined-annual">—</p></div>
           </div>
           <div style="margin-top:8px;padding:7px 10px;background:var(--green-bg);border-radius:var(--radius);font-size:12px;color:var(--green);font-weight:500;" id="k401-match-banner">✓ Employer match set — capturing free money</div>
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TIMELINE ══════════ -->
+<div class="page" id="page-timeline">
+  <div class="card" style="margin-bottom:10px;">
+    <p class="eyebrow"><span class="accent" style="background:var(--green);"></span>Net Worth Over Time</p>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Each point is one saved sheet. Save a new sheet each month to track your progress.</p>
+    <div class="chart-wrap" id="tl-nw"></div>
+  </div>
+  <div class="grid2" style="margin-bottom:10px;">
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:#EF9F27;"></span>Total Wealth</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Net worth + Pokémon collection combined</p>
+      <div class="chart-wrap" id="tl-wealth"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:#5DCAA5;"></span>Cash Balance</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">BOA checking + savings + HYSA</p>
+      <div class="chart-wrap" id="tl-cash"></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:#7F77DD;"></span>Pokémon Collection</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Raw + sealed + graded total</p>
+      <div class="chart-wrap" id="tl-pokemon"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:#378ADD;"></span>Investments</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Taxable + Roth IRA + 401(k)</p>
+      <div class="chart-wrap" id="tl-invest"></div>
     </div>
   </div>
 </div>
@@ -546,15 +571,15 @@ button{font-family:inherit;cursor:pointer;}
     <div class="grid3" style="margin-bottom:0;gap:10px;">
       <div class="mc">
         <p class="mc-label">Net Worth <span class="lb lb-budget">← Finances</span></p>
-        <p class="mc-val" style="color:var(--green);font-size:16px;" id="pokemon-nw-val">—</p>
+        <p class="mc-val" style="color:var(--green);" id="pokemon-nw-val">—</p>
       </div>
       <div class="mc">
         <p class="mc-label">Collection Value <span class="lb lb-calc">this tab</span></p>
-        <p class="mc-val" style="color:#EF9F27;font-size:16px;" id="cards-all">—</p>
+        <p class="mc-val" style="color:#EF9F27;" id="cards-all">—</p>
       </div>
       <div class="mc" style="background:var(--green-bg);">
         <p class="mc-label">Combined <span class="lb lb-calc">calc</span></p>
-        <p class="mc-val" style="color:var(--green);font-size:16px;" id="wealth-combined">—</p>
+        <p class="mc-val" style="color:var(--green);" id="wealth-combined">—</p>
       </div>
     </div>
   </div>
@@ -618,10 +643,7 @@ const BUDGET_DEFAULTS = {
     {label:'Gas',hint:'car fuel',val:0},
     {label:'Pokémon cards',hint:'',val:300},
   ],
-  savings: [
-    {label:'HYSA transfer',hint:'',val:100},
-    {label:'ROTH IRA',hint:'',val:625},
-  ],
+  savings: [],
 };
 const TAX_DEF = [
   {ticker:'VOO',name:'US Large Cap',val:1382.9},
@@ -784,7 +806,7 @@ function switchSheet(id){
   const sh=sheets.find(s=>s.id===id);
   if(sh) applyData(sh.data);
   renderSheetBar();
-  ['income','housing','fixed','variable','savings'].forEach(renderSection);
+  ['income','housing','fixed','variable'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
   renderCCDebt();
   updateAll();
@@ -813,7 +835,7 @@ function deleteSheet(id){
     const ni=Math.min(idx,sheets.length-1);
     activeSheetId=sheets[ni].id;
     applyData(sheets[ni].data);
-    ['income','housing','fixed','variable','savings'].forEach(renderSection);
+    ['income','housing','fixed','variable'].forEach(renderSection);
     ['taxable','roth','watchlist'].forEach(renderHoldings);
     renderCCDebt();
     updateAll();
@@ -927,7 +949,7 @@ function resetAll(){
   localStorage.removeItem(MASTER_KEY);
   sheets=[]; activeSheetId=null;
   initFirstSheet();
-  ['income','housing','fixed','variable','savings'].forEach(renderSection);
+  ['income','housing','fixed','variable'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
   renderCCDebt(); updateAll(); resetUndo();
   saveAll(); // wipe cloud too so old data doesn't come back on reload
@@ -965,6 +987,7 @@ function switchTab(name,btn){
   btn.classList.add('active');
   activeTabId=name;
   updateUndoBtn();
+  if(name==='timeline') renderTimeline();
 }
 
 // ── PER-TAB UNDO ─────────────────────────────────────────────
@@ -986,7 +1009,7 @@ function applyTabSnap(tab,snap){
   const d=JSON.parse(snap);
   if(tab==='budget'){
     budget=JSON.parse(JSON.stringify(d.budget));
-    ['income','housing','fixed','variable','savings'].forEach(renderSection);
+    ['income','housing','fixed','variable'].forEach(renderSection);
     updateBudget();
   }else if(tab==='finances'){
     taxable=JSON.parse(JSON.stringify(d.taxable));
@@ -1042,7 +1065,7 @@ function resetBudgetTab(){
   ['income','housing','fixed','variable','savings'].forEach(sec=>{
     budget[sec].forEach(row=>{row.val=0;if(row.annualVal!==undefined)row.annualVal=0;});
   });
-  ['income','housing','fixed','variable','savings'].forEach(renderSection);
+  ['income','housing','fixed','variable'].forEach(renderSection);
   updateBudget();schedSave('budget');flashSaved('Budget values reset to $0');
 }
 
@@ -1144,8 +1167,8 @@ function removeHolding(type,idx){getArr(type).splice(idx,1);renderHoldings(type)
 // ── BUDGET UPDATE ─────────────────────────────────────────────
 function updateBudget(){
   const th=secTotal('income');
-  const housing=secTotal('housing'),fixed=secTotal('fixed'),variable=secTotal('variable'),savings=secTotal('savings');
-  const total=housing+fixed+variable+savings;
+  const housing=secTotal('housing'),fixed=secTotal('fixed'),variable=secTotal('variable');
+  const total=housing+fixed+variable;
   const rem=th-total,remP=th?rem/th*100:0;
   const rentRow=budget.housing.find(r=>r.label.toLowerCase().includes('rent'));
   const rentVal=rentRow?rentRow.val:0,rentP=th?rentVal/th*100:0;
@@ -1157,15 +1180,14 @@ function updateBudget(){
   const cfb=document.getElementById('cf-badge');cfb.textContent=cl;cfb.style.color=cc;cfb.style.background=cb;
   const rv=document.getElementById('rti-val');rv.textContent=rentP.toFixed(0)+'%';rv.style.color=rentP<=30?'#1D9E75':rentP<=35?'#BA7517':'#A32D2D';
   document.getElementById('rti-lbl').textContent=rentP<=30?'within 30% guideline':rentP<=35?'slightly over 30%':'above guideline';
-  [[housing,'h'],[fixed,'f'],[variable,'v'],[savings,'s']].forEach(([v,k])=>{
+  [[housing,'h'],[fixed,'f'],[variable,'v']].forEach(([v,k])=>{
     document.getElementById('seg-'+k).style.width=(th?Math.min(Math.max(v/th*100,0),100):0)+'%';
     document.getElementById('l'+k).textContent=fmt(v);document.getElementById('l'+k+'p').textContent='('+pct(v,th)+')';
   });
   document.getElementById('tot-inc').textContent=fmt(th);
   document.getElementById('tot-h').textContent=fmt(housing);document.getElementById('tot-f').textContent=fmt(fixed);
-  document.getElementById('tot-v').textContent=fmt(variable);document.getElementById('tot-s').textContent=fmt(savings);
+  document.getElementById('tot-v').textContent=fmt(variable);
   document.getElementById('ann-inc').textContent=fmt(th*12);document.getElementById('ann-exp').textContent=fmt(total*12);
-  document.getElementById('ann-sav').textContent=fmt(savings*12);
   const as=document.getElementById('ann-sur');as.textContent=(rem>=0?'+':'')+fmt(rem*12);as.style.color=rem>=0?'#1D9E75':'#A32D2D';
   const flags=[];
   if(rentP>30)flags.push({d:false,t:`Rent is ${rentP.toFixed(0)}% of take-home`,b:`30% rule = ${fmt(th*0.3)}/mo max. You're ${fmt(rentVal-th*0.3)} over.`});
@@ -1430,6 +1452,55 @@ function hideChartTip(){document.getElementById('chartTooltip').style.display='n
 
 function updateAll(){updateBudget();updateFinances();updateCards();}
 
+// ── TIMELINE CHARTS ───────────────────────────────────────────
+function drawLineChart(wrId, points, valFn, color, gradId){
+  const wrap=document.getElementById(wrId);if(!wrap)return;
+  const vals=points.map(valFn);
+  if(vals.every(v=>v===0)){wrap.innerHTML='<p style="font-size:12px;color:var(--text3);padding:12px 0;">No data yet.</p>';return;}
+  const W=Math.max(wrap.clientWidth||400,300),H=130;
+  const pad={l:62,r:16,t:12,b:30};
+  const iW=W-pad.l-pad.r,iH=H-pad.t-pad.b;
+  const minV=Math.min(...vals),maxV=Math.max(...vals),range=maxV-minV||1;
+  const xOf=i=>pad.l+i/(points.length-1||1)*iW;
+  const yOf=v=>pad.t+iH-(v-minV)/range*iH;
+  const pathD=points.map((p,i)=>(i===0?'M':'L')+xOf(i).toFixed(1)+','+yOf(valFn(p)).toFixed(1)).join(' ');
+  const fillD=pathD+` L${xOf(points.length-1).toFixed(1)},${(pad.t+iH).toFixed(1)} L${pad.l},${(pad.t+iH).toFixed(1)} Z`;
+  const ticks=[minV,maxV].map(v=>`
+    <line x1="${pad.l-4}" y1="${yOf(v).toFixed(1)}" x2="${W-pad.r}" y2="${yOf(v).toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="${pad.l-7}" y="${(yOf(v)+4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--text3)">${fmt(v)}</text>`).join('');
+  const dots=points.map((p,i)=>`
+    <circle class="chart-dot" cx="${xOf(i).toFixed(1)}" cy="${yOf(valFn(p)).toFixed(1)}" r="4" fill="${color}" stroke="var(--surface)" stroke-width="2"
+      onmouseenter="showChartTip(event,'${p.label.replace(/'/g,'&#39;')}','${fmt(valFn(p))}')"
+      onmouseleave="hideChartTip()"/>`).join('');
+  const xLabels=[
+    `<text x="${xOf(0).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--text3)">${points[0].label}</text>`,
+    points.length>1?`<text x="${xOf(points.length-1).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--text3)">${points[points.length-1].label}</text>`:''
+  ].join('');
+  wrap.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".18"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    ${ticks}<path d="${fillD}" fill="url(#${gradId})"/>
+    <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${xLabels}</svg>`;
+}
+
+function renderTimeline(){
+  const empty='<p style="font-size:12px;color:var(--text3);padding:16px 0;">Save more than one sheet to see trends here.</p>';
+  if(sheets.length<2){
+    ['tl-nw','tl-wealth','tl-cash','tl-pokemon','tl-invest'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=empty;});
+    return;
+  }
+  const sorted=sheets.map(sh=>{
+    const d=sh.data||{};
+    const r=calcNWFromData(d);
+    return{label:sh.customName||fmtTabDate(sh.createdAt||sh.updatedAt),date:new Date(sh.createdAt||sh.updatedAt),...r};
+  }).sort((a,b)=>a.date-b.date);
+  drawLineChart('tl-nw',    sorted, p=>p.nw,          '#1D9E75','tlGrad1');
+  drawLineChart('tl-wealth', sorted, p=>p.totalWealth, '#EF9F27','tlGrad2');
+  drawLineChart('tl-cash',  sorted, p=>p.cashTotal,   '#5DCAA5','tlGrad3');
+  drawLineChart('tl-pokemon',sorted, p=>p.cardsTotal,  '#7F77DD','tlGrad4');
+  drawLineChart('tl-invest', sorted, p=>p.portTotal,   '#378ADD','tlGrad5');
+}
+
 // fin-inp listener
 document.querySelectorAll('.fin-inp').forEach(el=>el.addEventListener('input',()=>{updateFinances();schedSave();}));
 
@@ -1505,7 +1576,7 @@ async function loadFromCloud(){
 // ── RENDER — called after load ────────────────────────────────
 function renderAll(){
   renderSheetBar();
-  ['income','housing','fixed','variable','savings'].forEach(renderSection);
+  ['income','housing','fixed','variable'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
   renderCCDebt(); updateAll(); resetUndo();
 }
