@@ -561,8 +561,8 @@ button{font-family:inherit;cursor:pointer;}
             <div class="cash-val"><span class="sym">$</span><input type="number" data-key="k401" value="0" min="0" class="fin-inp"></div>
           </div>
           <div class="k401-grid" style="margin-top:12px;">
-            <div class="mc"><p class="mc-label">Per paycheck <span class="lb lb-calc">calc</span></p><p class="mc-val" style="id="k401-per-check">—</p></div>
-            <div class="mc"><p class="mc-label">Per month <span class="lb lb-calc">calc</span></p><p class="mc-val" style="id="k401-per-month">—</p></div>
+            <div class="mc"><p class="mc-label">Per paycheck <span class="lb lb-calc">calc</span></p><p class="mc-val" id="k401-per-check">—</p></div>
+            <div class="mc"><p class="mc-label">Per month <span class="lb lb-calc">calc</span></p><p class="mc-val" id="k401-per-month">—</p></div>
             <div class="mc"><p class="mc-label">Annual (you) <span class="lb lb-calc">calc</span></p><p class="mc-val" style="color:#5DCAA5;" id="k401-annual">—</p></div>
             <div class="mc"><p class="mc-label">Match / check <span class="lb lb-calc">calc</span></p><p class="mc-val" style="color:var(--green);" id="k401-match-check">—</p></div>
             <div class="mc"><p class="mc-label">Match / yr <span class="lb lb-calc">calc</span></p><p class="mc-val" style="color:var(--green);" id="k401-match-annual">—</p></div>
@@ -640,6 +640,11 @@ button{font-family:inherit;cursor:pointer;}
       <p style="font-size:14px;font-weight:700;color:#EF9F27;" id="cards-total">—</p>
     </div>
   </div>
+</div>
+
+<div style="margin-top:32px;padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+  <p style="font-size:11px;color:var(--text3);">Backup downloads a copy of all your data as a file you can reopen on any device.</p>
+  <button class="undo-btn" onclick="downloadMyData()" title="Download all your data as a local backup file">⤓ Backup</button>
 </div>
 
 </div><!-- /section-sheets -->
@@ -884,9 +889,8 @@ function saveCurrentSheet(flash=true){
   if(!sh) return;
   sh.data=liveToData();
   sh.updatedAt=new Date().toISOString();
-  // name/createdAt never change after creation
   if(!sh.createdAt) sh.createdAt=sh.updatedAt;
-  saveAll(); renderSheetBar();
+  saveAll(); // do NOT call renderSheetBar here — causes tab DOM to rebuild every 500ms while typing
   if(flash){
     const t=new Date().toLocaleString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',hour12:true});
     flashSaved('Auto-saved at '+t);
@@ -962,23 +966,6 @@ function flashSaved(txt){
   document.getElementById('resetBtn').style.display='inline';
 }
 
-function loadFromStorage(){
-  const raw=localStorage.getItem(MASTER_KEY);
-  if(!raw) return false;
-  try{
-    const parsed=JSON.parse(raw);
-    sheets=parsed.sheets||[];
-    activeSheetId=parsed.activeSheetId;
-    if(!sheets.length) return false;
-    if(!sheets.find(s=>s.id===activeSheetId)) activeSheetId=sheets[sheets.length-1].id;
-    // migrate: ensure customName exists
-    sheets.forEach(s=>{ if(s.customName===undefined) s.customName=''; });
-    const sh=sheets.find(s=>s.id===activeSheetId);
-    applyData(sh.data);
-    flashSaved('Loaded · '+(sh.customName||fmtTabDate(sh.updatedAt)));
-    return true;
-  }catch(e){return false;}
-}
 
 function resetAll(){
   if(!confirm('Reset everything — delete all sheets and start from scratch?')) return;
@@ -1114,8 +1101,8 @@ function schedSave(tabOverride){
 // ── PER-TAB RESET ────────────────────────────────────────────
 function resetBudgetTab(){
   if(!confirm('Zero all dollar amounts in the Budget tab for THIS sheet only? Labels stay. Other sheets are not affected.'))return;
-  ['income','housing','fixed','variable','savings'].forEach(sec=>{
-    budget[sec].forEach(row=>{row.val=0;if(row.annualVal!==undefined)row.annualVal=0;});
+  ['income','housing','fixed','variable'].forEach(sec=>{
+    (budget[sec]||[]).forEach(row=>{row.val=0;if(row.annualVal!==undefined)row.annualVal=0;});
   });
   ['income','housing','fixed','variable'].forEach(renderSection);
   updateBudget();schedSave('budget');flashSaved('Budget values reset to $0');
@@ -1664,11 +1651,6 @@ async function boot(){
 
 boot();
 </script>
-
-<div style="margin-top:32px;padding:16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-  <p style="font-size:11px;color:var(--text3);">Backup downloads a copy of all your data as a file you can reopen on any device.</p>
-  <button class="undo-btn" onclick="downloadMyData()" title="Download all your data as a local backup file">⤓ Backup</button>
-</div>
 
 <script>
 // ── PWA: MANIFEST + SERVICE WORKER ───────────────────────────
