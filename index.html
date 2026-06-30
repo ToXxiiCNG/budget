@@ -186,10 +186,12 @@ button{font-family:inherit;cursor:pointer;}
 .cc-color-pick{-webkit-appearance:none;-moz-appearance:none;appearance:none;width:26px;height:26px;border:1px solid var(--border);border-radius:5px;cursor:pointer;padding:2px;background:var(--surface2);flex-shrink:0;}
 .cc-color-pick::-webkit-color-swatch-wrapper{padding:0;}
 .cc-color-pick::-webkit-color-swatch{border:none;border-radius:3px;}
-.cc-val-wrap{display:flex;align-items:center;gap:3px;background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:5px 9px;min-width:110px;}
-.cc-val-wrap .sym{font-size:12px;color:var(--red);}
-.cc-val-wrap input{border:none;background:transparent;width:74px;font-size:13px;font-weight:600;color:var(--red-text);text-align:right;font-family:inherit;outline:none;}
+.cc-val-wrap{display:flex;align-items:center;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:5px 9px;min-width:110px;}
+.cc-val-wrap .sym{font-size:12px;color:var(--text3);}
+.cc-val-wrap input{border:none;background:transparent;width:74px;font-size:13px;font-weight:600;color:var(--text1);text-align:right;font-family:inherit;outline:none;}
 .cc-debt-total{display:flex;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);}
+.debt-subsection{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin:12px 0 8px;padding-top:12px;border-top:1px solid var(--border);}
+.debt-subsection-first{border-top:none!important;margin-top:0!important;padding-top:0!important;}
 
 /* Tab toolbar */
 .tab-toolbar{display:flex;justify-content:flex-end;margin-bottom:10px;}
@@ -416,7 +418,7 @@ button{font-family:inherit;cursor:pointer;}
         <div class="mc" style="min-width:100px;"><p class="mc-label">Assets</p><p class="mc-val" id="nw-assets">—</p></div>
         <div class="mc" style="min-width:100px;"><p class="mc-label">Invested</p><p class="mc-val" id="nw-inv">—</p></div>
         <div class="mc" style="min-width:100px;"><p class="mc-label">Cash</p><p class="mc-val" id="nw-cash">—</p></div>
-        <div class="mc" style="min-width:100px;"><p class="mc-label">CC Debt</p><p class="mc-val" style="color:var(--red);" id="nw-cc-debt">—</p></div>
+        <div class="mc" style="min-width:100px;"><p class="mc-label">Total Debt</p><p class="mc-val" style="color:var(--red);" id="nw-cc-debt">—</p></div>
       </div>
     </div>
     <div class="bar-track" style="margin-top:14px;margin-bottom:8px;" id="asset-bar"></div>
@@ -466,14 +468,21 @@ button{font-family:inherit;cursor:pointer;}
         </div>
       </div>
 
-      <!-- CC DEBT -->
+      <!-- ALL DEBT -->
       <div class="card">
-        <p class="eyebrow"><span class="accent" style="background:#E24B4A;"></span>Credit Card Debt <span class="lb lb-static">manual</span></p>
+        <p class="eyebrow"><span class="accent" style="background:#E24B4A;"></span>All Debt <span class="lb lb-static">manual</span></p>
+
+        <p class="debt-subsection debt-subsection-first">Credit Cards</p>
         <div id="cc-debt-rows"></div>
-        <button class="add-btn" onclick="addCCDebt()" style="border-color:var(--red);color:var(--red);margin-top:8px;">+ Add card</button>
+        <button class="add-btn" onclick="addCCDebt()" style="margin-top:6px;">+ Add card</button>
+
+        <p class="debt-subsection">Other Debt</p>
+        <div id="other-debt-rows"></div>
+        <button class="add-btn" onclick="addOtherDebt()" style="margin-top:6px;">+ Add debt</button>
+
         <div class="cc-debt-total">
-          <p style="font-size:12px;font-weight:500;color:var(--text2);">Total CC debt <span class="lb lb-calc">calc</span></p>
-          <p style="font-size:13px;font-weight:600;color:var(--red);" id="cc-debt-total">—</p>
+          <p style="font-size:12px;font-weight:500;color:var(--text2);">Total debt <span class="lb lb-calc">calc</span></p>
+          <p style="font-size:13px;font-weight:600;" id="cc-debt-total">—</p>
         </div>
       </div>
 
@@ -610,32 +619,17 @@ button{font-family:inherit;cursor:pointer;}
 
   <!-- COLLECTION DETAIL -->
   <div class="card" style="margin-bottom:12px;">
-    <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:14px;">Pokémon Collection · Breakdown</p>
-    <div class="grid3" style="margin-bottom:12px;">
-      <div class="mc"><p class="mc-label">Raw</p><p class="mc-val" style="color:#378ADD;" id="cards-raw-disp">—</p></div>
-      <div class="mc"><p class="mc-label">Sealed</p><p class="mc-val" style="color:var(--purple);" id="cards-sealed-disp">—</p></div>
-      <div class="mc"><p class="mc-label">Graded</p><p class="mc-val" style="color:#1D9E75;" id="cards-graded-disp">—</p></div>
-    </div>
+    <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px;">Pokémon Collection · Breakdown</p>
     <div class="bar-track" id="cards-bar"></div>
     <div class="legend" id="cards-legend"></div>
   </div>
 
   <div class="card">
-    <p class="eyebrow"><span class="accent" style="background:#EF9F27;"></span>Enter Values <span class="lb lb-static">manual entry</span></p>
-    <p style="font-size:12px;color:var(--text3);margin-bottom:10px;">Type each total from Collectr. Totals update automatically.</p>
-    <div class="cash-row">
-      <div style="flex:1;"><p style="font-size:13px;">Raw cards</p><p style="font-size:11px;color:var(--text3);margin-top:1px;">ungraded singles</p></div>
-      <div class="cash-val"><span class="sym">$</span><input type="number" data-key="cardsRaw" value="0" min="0" step="1" class="fin-inp" oninput="updateCards()"></div>
-    </div>
-    <div class="cash-row">
-      <div style="flex:1;"><p style="font-size:13px;">Sealed</p><p style="font-size:11px;color:var(--text3);margin-top:1px;">booster boxes, ETBs, packs</p></div>
-      <div class="cash-val"><span class="sym">$</span><input type="number" data-key="cardsSealed" value="0" min="0" step="1" class="fin-inp" oninput="updateCards()"></div>
-    </div>
-    <div class="cash-row">
-      <div style="flex:1;"><p style="font-size:13px;">Graded</p><p style="font-size:11px;color:var(--text3);margin-top:1px;">PSA / CGC / BGS slabs</p></div>
-      <div class="cash-val"><span class="sym">$</span><input type="number" data-key="cardsGraded" value="0" min="0" step="1" class="fin-inp" oninput="updateCards()"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);">
+    <p class="eyebrow"><span class="accent" style="background:#EF9F27;"></span>Collection Categories <span class="lb lb-static">manual entry</span></p>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:10px;">Add each category from Collectr. Totals update automatically.</p>
+    <div id="card-cat-rows"></div>
+    <button class="add-btn" onclick="addCardCategory()" style="margin-top:6px;">+ Add category</button>
+    <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:8px;border-top:1px solid var(--border);">
       <p style="font-size:12px;font-weight:600;color:var(--text2);">Collection total <span class="lb lb-calc">calc</span></p>
       <p style="font-size:14px;font-weight:700;color:#EF9F27;" id="cards-total">—</p>
     </div>
@@ -694,40 +688,50 @@ const CC_DEBT_DEF = [
   {label:'Blue Card',color:'#378ADD',val:0},
   {label:'Red Card',color:'#E24B4A',val:0},
 ];
-const FIN_DEF = {boaChecking:0,boaSavings:0,hysaBal:0,k401:0,grossPaycheck:0,k401Pct:0,k401Match:0,payFreq:26,cardsRaw:0,cardsSealed:0,cardsGraded:0};
+const FIN_DEF = {boaChecking:0,boaSavings:0,hysaBal:0,k401:0,grossPaycheck:0,k401Pct:0,k401Match:0,payFreq:26};
+const CARDS_DEF = [
+  {label:'Raw cards',   hint:'ungraded singles',          val:0},
+  {label:'Sealed',      hint:'booster boxes, ETBs, packs', val:0},
+  {label:'Graded',      hint:'PSA / CGC / BGS slabs',     val:0},
+];
+const OTHER_DEBT_DEF = [];
 
 // ── SHEET STATE ───────────────────────────────────────────────
 let sheets = [];
 let activeSheetId = null;
-let budget, taxable, roth, watchlist, ccDebt, finVals;
+let budget, taxable, roth, watchlist, ccDebt, otherDebt, cardCategories, finVals;
 
 function freshSheetData(){
   return {
-    budget:   JSON.parse(JSON.stringify(BUDGET_DEFAULTS)),
-    taxable:  JSON.parse(JSON.stringify(TAX_DEF)),
-    roth:     JSON.parse(JSON.stringify(ROTH_DEF)),
-    watchlist:[],
-    ccDebt:   JSON.parse(JSON.stringify(CC_DEBT_DEF)),
-    finVals:  {...FIN_DEF},
+    budget:         JSON.parse(JSON.stringify(BUDGET_DEFAULTS)),
+    taxable:        JSON.parse(JSON.stringify(TAX_DEF)),
+    roth:           JSON.parse(JSON.stringify(ROTH_DEF)),
+    watchlist:      [],
+    ccDebt:         JSON.parse(JSON.stringify(CC_DEBT_DEF)),
+    otherDebt:      JSON.parse(JSON.stringify(OTHER_DEBT_DEF)),
+    cardCategories: JSON.parse(JSON.stringify(CARDS_DEF)),
+    finVals:        {...FIN_DEF},
     customName: '',
   };
 }
 
 function liveToData(){
   const fv = {};
-  ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','payFreq','cardsRaw','cardsSealed','cardsGraded'].forEach(k=>{
+  ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','payFreq'].forEach(k=>{
     const el = document.querySelector(`[data-key="${k}"]`);
     fv[k] = el ? parseFloat(el.value)||0 : (finVals[k]||0);
   });
   const grRow = budget.income.find(r=>r.isGross);
   if(grRow) fv.grossPaycheck = grRow.val;
   return {
-    budget:    JSON.parse(JSON.stringify(budget)),
-    taxable:   JSON.parse(JSON.stringify(taxable)),
-    roth:      JSON.parse(JSON.stringify(roth)),
-    watchlist: JSON.parse(JSON.stringify(watchlist)),
-    ccDebt:    JSON.parse(JSON.stringify(ccDebt)),
-    finVals:   fv,
+    budget:         JSON.parse(JSON.stringify(budget)),
+    taxable:        JSON.parse(JSON.stringify(taxable)),
+    roth:           JSON.parse(JSON.stringify(roth)),
+    watchlist:      JSON.parse(JSON.stringify(watchlist)),
+    ccDebt:         JSON.parse(JSON.stringify(ccDebt)),
+    otherDebt:      JSON.parse(JSON.stringify(otherDebt)),
+    cardCategories: JSON.parse(JSON.stringify(cardCategories)),
+    finVals:        fv,
     customName: (sheets.find(s=>s.id===activeSheetId)||{}).customName || '',
   };
 }
@@ -738,10 +742,22 @@ function applyData(data){
   roth      = JSON.parse(JSON.stringify(data.roth      || ROTH_DEF));
   watchlist = JSON.parse(JSON.stringify(data.watchlist || []));
   ccDebt    = JSON.parse(JSON.stringify(data.ccDebt    || CC_DEBT_DEF));
-  finVals   = {...FIN_DEF, ...(data.finVals||{})};
+  otherDebt = JSON.parse(JSON.stringify(data.otherDebt || OTHER_DEBT_DEF));
+  // Migrate old fixed cardsRaw/Sealed/Graded → cardCategories
+  if(data.cardCategories && data.cardCategories.length){
+    cardCategories = JSON.parse(JSON.stringify(data.cardCategories));
+  } else {
+    cardCategories = JSON.parse(JSON.stringify(CARDS_DEF));
+    const fvOld = data.finVals||{};
+    if(fvOld.cardsRaw)    cardCategories[0].val = fvOld.cardsRaw;
+    if(fvOld.cardsSealed) cardCategories[1].val = fvOld.cardsSealed;
+    if(fvOld.cardsGraded) cardCategories[2].val = fvOld.cardsGraded;
+  }
+  finVals = {...FIN_DEF, ...(data.finVals||{})};
+  delete finVals.cardsRaw; delete finVals.cardsSealed; delete finVals.cardsGraded;
   const gr = budget.income.find(r=>r.isGross);
   if(gr){ gr.label='Paycheck'; gr.hint='bi-weekly · used for 401k calc in Finances'; finVals.grossPaycheck=gr.val; }
-  ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','payFreq','cardsRaw','cardsSealed','cardsGraded'].forEach(k=>{
+  ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','payFreq'].forEach(k=>{
     const el = document.querySelector(`[data-key="${k}"]`);
     if(el) el.value = finVals[k] ?? FIN_DEF[k];
   });
@@ -755,8 +771,14 @@ function calcNWFromData(data){
   const rothTotal = (data.roth||[]).reduce((a,h)=>a+h.val,0);
   const k401      = fv.k401||0;
   const portTotal = taxTotal+rothTotal+k401;
-  const ccTotal   = (data.ccDebt||[]).reduce((a,c)=>a+c.val,0);
-  const cardsTotal= (fv.cardsRaw||0)+(fv.cardsSealed||0)+(fv.cardsGraded||0);
+  const ccTotal   = (data.ccDebt||[]).reduce((a,c)=>a+c.val,0)
+                  + (data.otherDebt||[]).reduce((a,d)=>a+d.val,0);
+  let cardsTotal = 0;
+  if(data.cardCategories && data.cardCategories.length){
+    cardsTotal = data.cardCategories.reduce((a,c)=>a+c.val,0);
+  } else {
+    cardsTotal = (fv.cardsRaw||0)+(fv.cardsSealed||0)+(fv.cardsGraded||0);
+  }
   const nw = cashTotal+portTotal-ccTotal;
   return {cashTotal,taxTotal,rothTotal,portTotal,ccTotal,cardsTotal,nw,totalWealth:nw+cardsTotal};
 }
@@ -837,8 +859,7 @@ function switchSheet(id){
   renderSheetBar();
   ['income','housing','fixed','variable'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
-  renderCCDebt();
-  updateAll();
+  renderCCDebt(); renderOtherDebt(); renderCardCategories(); updateAll();
   resetUndo();
   flashSaved('Switched to '+(sh.customName||fmtTabDate(sh.updatedAt)));
 }
@@ -854,7 +875,7 @@ function newSheet(){
   applyData(newData);
   ['income','housing','fixed','variable'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
-  renderCCDebt(); updateAll();
+  renderCCDebt(); renderOtherDebt(); renderCardCategories(); updateAll();
   saveAll();
   renderSheetBar();
   resetUndo();
@@ -880,7 +901,7 @@ function deleteSheet(id){
   }
   ['income','housing','fixed','variable'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
-  renderCCDebt(); updateAll();
+  renderCCDebt(); renderOtherDebt(); renderCardCategories(); updateAll();
   saveAll(); renderSheetBar(); resetUndo();
 }
 
@@ -908,8 +929,10 @@ function zeroData(data){
   (d.taxable||[]).forEach(h=>h.val=0);
   (d.roth||[]).forEach(h=>h.val=0);
   (d.ccDebt||[]).forEach(c=>c.val=0);
+  (d.otherDebt||[]).forEach(od=>od.val=0);
+  (d.cardCategories||[]).forEach(c=>c.val=0);
   const fv=d.finVals||{};
-  ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','cardsRaw','cardsSealed','cardsGraded'].forEach(k=>fv[k]=0);
+  ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match'].forEach(k=>fv[k]=0);
   fv.payFreq=fv.payFreq||26;
   return d;
 }
@@ -969,12 +992,11 @@ function flashSaved(txt){
 
 function resetAll(){
   if(!confirm('Reset everything — delete all sheets and start from scratch?')) return;
-  localStorage.removeItem(MASTER_KEY);
   sheets=[]; activeSheetId=null;
   initFirstSheet();
   ['income','housing','fixed','variable'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
-  renderCCDebt(); updateAll(); resetUndo();
+  renderCCDebt(); renderOtherDebt(); renderCardCategories(); updateAll(); resetUndo();
   saveAll(); // wipe cloud too so old data doesn't come back on reload
   document.getElementById('saveInd').classList.remove('saved');
   document.getElementById('saveDot').style.background='';
@@ -1039,9 +1061,9 @@ function getTabSnap(tab){
     ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','payFreq'].forEach(k=>{
       const el=document.querySelector(`[data-key="${k}"]`);fv[k]=el?parseFloat(el.value)||0:0;
     });
-    return JSON.stringify({taxable:JSON.parse(JSON.stringify(taxable)),roth:JSON.parse(JSON.stringify(roth)),watchlist:JSON.parse(JSON.stringify(watchlist)),ccDebt:JSON.parse(JSON.stringify(ccDebt)),finVals:fv});
+    return JSON.stringify({taxable:JSON.parse(JSON.stringify(taxable)),roth:JSON.parse(JSON.stringify(roth)),watchlist:JSON.parse(JSON.stringify(watchlist)),ccDebt:JSON.parse(JSON.stringify(ccDebt)),otherDebt:JSON.parse(JSON.stringify(otherDebt||[])),finVals:fv});
   }
-  return JSON.stringify({cardsRaw:gF('cardsRaw'),cardsSealed:gF('cardsSealed'),cardsGraded:gF('cardsGraded')});
+  return JSON.stringify({cardCategories:JSON.parse(JSON.stringify(cardCategories))});
 }
 
 function applyTabSnap(tab,snap){
@@ -1055,14 +1077,15 @@ function applyTabSnap(tab,snap){
     roth=JSON.parse(JSON.stringify(d.roth));
     watchlist=JSON.parse(JSON.stringify(d.watchlist));
     ccDebt=JSON.parse(JSON.stringify(d.ccDebt));
+    if(d.otherDebt) otherDebt=JSON.parse(JSON.stringify(d.otherDebt));
     Object.assign(finVals,d.finVals);
     ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','payFreq'].forEach(k=>{
       const el=document.querySelector(`[data-key="${k}"]`);if(el)el.value=d.finVals[k]??0;
     });
-    ['taxable','roth','watchlist'].forEach(renderHoldings);renderCCDebt();updateFinances();
+    ['taxable','roth','watchlist'].forEach(renderHoldings);renderCCDebt();renderOtherDebt();updateFinances();
   }else{
-    ['cardsRaw','cardsSealed','cardsGraded'].forEach(k=>{const el=document.querySelector(`[data-key="${k}"]`);if(el)el.value=d[k]??0;});
-    updateCards();
+    if(d.cardCategories) cardCategories=JSON.parse(JSON.stringify(d.cardCategories));
+    renderCardCategories();updateCards();
   }
 }
 
@@ -1110,18 +1133,18 @@ function resetBudgetTab(){
 
 function resetFinancesTab(){
   if(!confirm('Zero all balances in the Finances tab for THIS sheet only? Labels and tickers stay. Other sheets are not affected.'))return;
-  taxable.forEach(h=>h.val=0);roth.forEach(h=>h.val=0);ccDebt.forEach(c=>c.val=0);
-  ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','cardsRaw','cardsSealed','cardsGraded'].forEach(k=>{
+  taxable.forEach(h=>h.val=0);roth.forEach(h=>h.val=0);ccDebt.forEach(c=>c.val=0);(otherDebt||[]).forEach(d=>d.val=0);
+  ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match'].forEach(k=>{
     finVals[k]=0;const el=document.querySelector(`[data-key="${k}"]`);if(el)el.value=0;
   });
-  ['taxable','roth','watchlist'].forEach(renderHoldings);renderCCDebt();updateFinances();
+  ['taxable','roth','watchlist'].forEach(renderHoldings);renderCCDebt();renderOtherDebt();updateFinances();
   schedSave('finances');flashSaved('Finances values reset to $0');
 }
 
 function resetCardsTab(){
   if(!confirm('Zero all Pokémon card values for THIS sheet only? Other sheets are not affected.'))return;
-  ['cardsRaw','cardsSealed','cardsGraded'].forEach(k=>{finVals[k]=0;const el=document.querySelector(`[data-key="${k}"]`);if(el)el.value=0;});
-  updateCards();schedSave('cards');flashSaved('Pokémon values reset to $0');
+  (cardCategories||[]).forEach(c=>c.val=0);
+  renderCardCategories();updateCards();schedSave('cards');flashSaved('Pokémon values reset to $0');
 }
 
 // ── RENDER BUDGET SECTIONS ────────────────────────────────────
@@ -1163,7 +1186,7 @@ function syncGrossToFinances(){
   updateFinances();
 }
 
-// ── CC DEBT ───────────────────────────────────────────────────
+// ── DEBT ──────────────────────────────────────────────────────
 function renderCCDebt(){
   const el=document.getElementById('cc-debt-rows');if(!el)return;
   el.innerHTML=ccDebt.map((c,i)=>`
@@ -1174,9 +1197,22 @@ function renderCCDebt(){
       <div class="cc-val-wrap"><span class="sym">$</span><input type="number" value="${c.val}" min="0" step="1" oninput="ccDebt[${i}].val=parseFloat(this.value)||0;schedSave();updateFinances();"></div>
       <button class="del-btn" onclick="removeCCDebt(${i})" title="Remove">×</button>
     </div>`).join('');
-  updateCCDebtTotal();
+  updateDebtTotal();
 }
-function updateCCDebtTotal(){const total=ccDebt.reduce((a,c)=>a+c.val,0);const el=document.getElementById('cc-debt-total');if(el)el.textContent=total>0?'-'+fmt(total):'$0';}
+function renderOtherDebt(){
+  const el=document.getElementById('other-debt-rows');if(!el)return;
+  el.innerHTML=(otherDebt||[]).map((d,i)=>`
+    <div class="cc-row">
+      <div class="cc-name" style="flex:1;"><input type="text" value="${d.label}" placeholder="Debt name…" oninput="otherDebt[${i}].label=this.value;schedSave();"></div>
+      <div class="cc-val-wrap"><span class="sym">$</span><input type="number" value="${d.val}" min="0" step="1" oninput="otherDebt[${i}].val=parseFloat(this.value)||0;schedSave();updateFinances();"></div>
+      <button class="del-btn" onclick="removeOtherDebt(${i})" title="Remove">×</button>
+    </div>`).join('');
+  updateDebtTotal();
+}
+function updateDebtTotal(){
+  const total=(ccDebt||[]).reduce((a,c)=>a+c.val,0)+(otherDebt||[]).reduce((a,d)=>a+d.val,0);
+  const el=document.getElementById('cc-debt-total');if(el)el.textContent=total>0?'-'+fmt(total):'$0';
+}
 function addCCDebt(){
   const colors=['#378ADD','#E24B4A','#1D9E75','#7F77DD','#EF9F27','#6B7280'];
   ccDebt.push({label:'',color:colors[ccDebt.length%colors.length],val:0});
@@ -1185,6 +1221,13 @@ function addCCDebt(){
   if(rows.length)rows[rows.length-1].querySelector('input[type=text]')?.focus();
 }
 function removeCCDebt(idx){ccDebt.splice(idx,1);renderCCDebt();schedSave();updateFinances();}
+function addOtherDebt(){
+  otherDebt.push({label:'',val:0});
+  renderOtherDebt();schedSave();updateFinances();
+  const rows=document.querySelectorAll('#other-debt-rows .cc-row');
+  if(rows.length)rows[rows.length-1].querySelector('input[type=text]')?.focus();
+}
+function removeOtherDebt(idx){otherDebt.splice(idx,1);renderOtherDebt();schedSave();updateFinances();}
 
 // ── HOLDINGS ─────────────────────────────────────────────────
 function getArr(type){return type==='taxable'?taxable:type==='roth'?roth:watchlist;}
@@ -1242,9 +1285,9 @@ function updateFinances(){
   const taxTotal=taxable.reduce((a,h)=>a+h.val,0);
   const rothTotal=roth.reduce((a,h)=>a+h.val,0);
   const portTotal=taxTotal+rothTotal+k401;
-  const ccTotal=ccDebt.reduce((a,c)=>a+c.val,0);
+  const ccTotal=ccDebt.reduce((a,c)=>a+c.val,0)+(otherDebt||[]).reduce((a,d)=>a+d.val,0);
   // Pokémon is NOT in Finances NW — only shown combined on the Pokémon tab
-  const cardsTotal=gF('cardsRaw')+gF('cardsSealed')+gF('cardsGraded');
+  const cardsTotal=(cardCategories||[]).reduce((a,c)=>a+c.val,0);
   const totalAssets=cashTotal+portTotal;
   const nw=totalAssets-ccTotal;
 
@@ -1255,7 +1298,7 @@ function updateFinances(){
   document.getElementById('nw-cash').textContent=fmt(cashTotal);
   document.getElementById('nw-cc-debt').textContent=ccTotal>0?'-'+fmt(ccTotal):'$0';
   document.getElementById('cash-total').textContent=fmt(cashTotal);
-  updateCCDebtTotal();
+  updateDebtTotal();
 
   document.getElementById('port-total').textContent=fmt(portTotal);
   document.getElementById('port-taxable').textContent=fmt(taxTotal);
@@ -1305,8 +1348,7 @@ let _lastNW = 0; // cache net worth so Pokemon tab can reference it
 
 function updateCardsHero(nw){
   _lastNW=nw;
-  const raw=gF('cardsRaw'),sealed=gF('cardsSealed'),graded=gF('cardsGraded');
-  const all=raw+sealed+graded;
+  const all=(cardCategories||[]).reduce((a,c)=>a+c.val,0);
   const combined=nw+all;
   const el=document.getElementById('wealth-total');
   if(el){el.textContent=fmt(combined);el.style.color=combined>=0?'var(--green)':'var(--red)';}
@@ -1316,23 +1358,40 @@ function updateCardsHero(nw){
   if(wc){wc.textContent=fmt(combined);wc.style.color=combined>=0?'var(--green)':'var(--red)';}
 }
 
+function renderCardCategories(){
+  const el=document.getElementById('card-cat-rows');if(!el)return;
+  const COLORS=['#378ADD','#7F77DD','#1D9E75','#EF9F27','#E24B4A','#5DCAA5','#AFA9EC'];
+  el.innerHTML=(cardCategories||[]).map((c,i)=>`
+    <div class="cc-row" style="align-items:flex-start;">
+      <div class="cc-name" style="flex:1;">
+        <input type="text" value="${c.label}" placeholder="Category…" oninput="cardCategories[${i}].label=this.value;schedSave('cards');updateCards();" style="width:100%;">
+        ${c.hint?`<p style="font-size:11px;color:var(--text3);margin-top:2px;">${c.hint}</p>`:''}
+      </div>
+      <div class="cc-val-wrap"><span class="sym">$</span><input type="number" value="${c.val}" min="0"
+        oninput="cardCategories[${i}].val=parseFloat(this.value)||0;schedSave('cards');updateCards();"></div>
+      <button class="del-btn" onclick="removeCardCategory(${i})" title="Remove">×</button>
+    </div>`).join('');
+}
+function addCardCategory(){
+  cardCategories.push({label:'',hint:'',val:0});
+  renderCardCategories();schedSave('cards');updateCards();
+  const rows=document.querySelectorAll('#card-cat-rows .cc-row');
+  if(rows.length)rows[rows.length-1].querySelector('input[type=text]')?.focus();
+}
+function removeCardCategory(idx){cardCategories.splice(idx,1);renderCardCategories();schedSave('cards');updateCards();}
+
 function updateCards(){
-  const raw=gF('cardsRaw'),sealed=gF('cardsSealed'),graded=gF('cardsGraded');
-  const all=raw+sealed+graded;
+  const cats=cardCategories||[];
+  const all=cats.reduce((a,c)=>a+c.val,0);
   const allEl=document.getElementById('cards-all');if(!allEl)return;
   allEl.textContent=fmt(all);
   document.getElementById('cards-total').textContent=fmt(all);
-  document.getElementById('cards-raw-disp').textContent=fmt(raw);
-  document.getElementById('cards-sealed-disp').textContent=fmt(sealed);
-  document.getElementById('cards-graded-disp').textContent=fmt(graded);
-  const segs=[{l:'Raw',v:raw,c:'#378ADD'},{l:'Sealed',v:sealed,c:'#7F77DD'},{l:'Graded',v:graded,c:'#1D9E75'}].filter(s=>s.v>0);
+  const COLORS=['#378ADD','#7F77DD','#1D9E75','#EF9F27','#E24B4A','#5DCAA5','#AFA9EC'];
+  const segs=cats.filter(c=>c.val>0).map((c,i)=>({l:c.label||'—',v:c.val,cl:COLORS[i%COLORS.length]}));
   const sum=segs.reduce((a,s)=>a+s.v,0);
-  document.getElementById('cards-bar').innerHTML=segs.map(s=>`<div class="bar-seg" style="background:${s.c};width:${sum?s.v/sum*100:0}%;"></div>`).join('');
-  document.getElementById('cards-legend').innerHTML=segs.map(s=>`<div class="leg-item"><div class="leg-dot" style="background:${s.c};"></div><span style="color:var(--text2);">${s.l}</span><span style="font-weight:500;margin-left:3px;">${fmt(s.v)}</span></div>`).join('');
-  // Update hero with cached NW
+  document.getElementById('cards-bar').innerHTML=segs.map(s=>`<div class="bar-seg" style="background:${s.cl};width:${sum?s.v/sum*100:0}%;"></div>`).join('');
+  document.getElementById('cards-legend').innerHTML=segs.map(s=>`<div class="leg-item"><div class="leg-dot" style="background:${s.cl};"></div><span style="color:var(--text2);">${s.l}</span><span style="font-weight:500;margin-left:3px;">${fmt(s.v)}</span></div>`).join('');
   updateCardsHero(_lastNW);
-  // Pokémon total changed → also refresh Finances net worth
-  updateFinances();
 }
 
 // ── ALLOCATION PIE CHART ─────────────────────────────────────
@@ -1621,7 +1680,7 @@ function renderAll(){
   renderSheetBar();
   ['income','housing','fixed','variable'].forEach(renderSection);
   ['taxable','roth','watchlist'].forEach(renderHoldings);
-  renderCCDebt(); updateAll(); resetUndo();
+  renderCCDebt(); renderOtherDebt(); renderCardCategories(); updateAll(); resetUndo();
 }
 
 // ── BOOT ─────────────────────────────────────────────────────
