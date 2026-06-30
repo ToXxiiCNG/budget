@@ -1450,7 +1450,7 @@ function renderAllocationPie(){
     <text x="${cx}" y="${cy+8}" class="pie-center-label" font-size="10" fill="var(--text3)">invested</text>
   </svg>`;
 
-  const legendRows = slices.map(s=>`
+  const legendRows = [...slices].sort((a,b)=>b.val-a.val).map(s=>`
     <div class="pie-leg-row"
       onmouseenter="highlightSlice(this,'${s.ticker}')"
       onmouseleave="unhighlightSlice()">
