@@ -1405,15 +1405,27 @@ function renderAllocationPie(){
   const wrap = document.getElementById('alloc-pie-wrap');
   if(!wrap) return;
 
-  // Build flat list of all holdings
-  const holdings = [];
+  // Build flat list of all holdings, then merge by ticker
+  const rawHoldings = [];
+  taxable.forEach(h=>{ if(h.val>0) rawHoldings.push({ticker:h.ticker||'—',name:h.name||'',val:h.val,acct:'Taxable'}); });
+  roth.forEach(h=>{    if(h.val>0) rawHoldings.push({ticker:h.ticker||'—',name:h.name||'',val:h.val,acct:'Roth IRA'}); });
+  const k401val = gF('k401');
+  if(k401val>0) rawHoldings.push({ticker:'401k',name:'Roth 401(k) — Vanguard',val:k401val,acct:'401(k)'});
+
+  // Merge duplicate tickers — combine values, list all accounts
+  const merged = {};
+  rawHoldings.forEach(h=>{
+    const key = h.ticker.toUpperCase();
+    if(merged[key]){
+      merged[key].val += h.val;
+      if(!merged[key].accts.includes(h.acct)) merged[key].accts.push(h.acct);
+    } else {
+      merged[key] = {...h, accts:[h.acct]};
+    }
+  });
   let colorIdx = 0;
   const nextColor = ()=>PIE_PALETTE[colorIdx++ % PIE_PALETTE.length];
-
-  taxable.forEach(h=>{ if(h.val>0) holdings.push({ticker:h.ticker||'—',name:h.name||'',val:h.val,acct:'Taxable',color:nextColor()}); });
-  roth.forEach(h=>{    if(h.val>0) holdings.push({ticker:h.ticker||'—',name:h.name||'',val:h.val,acct:'Roth IRA',color:nextColor()}); });
-  const k401val = gF('k401');
-  if(k401val>0) holdings.push({ticker:'401k',name:'Roth 401(k) — Vanguard',val:k401val,acct:'401(k)',color:nextColor()});
+  const holdings = Object.values(merged).map(h=>({...h, acct:h.accts.join(' + '), color:nextColor()}));
 
   const total = holdings.reduce((a,h)=>a+h.val,0);
   if(!total || holdings.length===0){
@@ -1461,9 +1473,9 @@ function renderAllocationPie(){
       <span class="pie-leg-val">${fmtD(s.val)}</span>
     </div>`).join('');
 
-  // Account subtotals
+  // Account subtotals — computed from raw (pre-merge) holdings so each account shows its true total
   const accts={};
-  slices.forEach(s=>{accts[s.acct]=(accts[s.acct]||0)+s.val;});
+  rawHoldings.forEach(h=>{accts[h.acct]=(accts[h.acct]||0)+h.val;});
   const acctBar=Object.entries(accts).map(([a,v])=>`<span style="font-size:11px;color:var(--text2);margin-right:14px;"><span style="font-weight:600;">${a}</span> ${fmt(v)} <span style="color:var(--text3);">(${(v/total*100).toFixed(0)}%)</span></span>`).join('');
 
   wrap.innerHTML=`
