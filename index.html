@@ -167,6 +167,15 @@ button{font-family:inherit;cursor:pointer;}
 .collectr-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--blue);background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:6px 14px;text-decoration:none;white-space:nowrap;transition:all .15s;}
 .collectr-link:hover{border-color:var(--blue);}
 
+/* ── TOP NAV (Sheets vs Timeline) ── */
+.top-nav{display:flex;gap:6px;margin-bottom:14px;}
+.top-tab{display:flex;align-items:center;gap:6px;padding:8px 18px;font-size:13px;font-weight:600;border-radius:var(--radius-lg);border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-family:inherit;transition:all .15s;}
+.top-tab:hover:not(.active-top){color:var(--text1);border-color:var(--border2);}
+.top-tab.active-top{background:var(--green);color:#fff;border-color:var(--green);}
+.timeline-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.timeline-header h2{font-size:17px;font-weight:600;}
+.timeline-header p{font-size:12px;color:var(--text3);}
+
 /* ── CREDIT CARD DEBT ROWS ── */
 .cc-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
 .cc-row:last-of-type{border-bottom:none;}
@@ -245,6 +254,55 @@ button{font-family:inherit;cursor:pointer;}
 </div>
 <div class="chart-tooltip" id="chartTooltip"></div>
 
+<!-- ══════════ TOP NAV ══════════ -->
+<div class="top-nav">
+  <button class="top-tab active-top" id="nav-sheets" onclick="switchTopNav('sheets',this)">📋 Sheets</button>
+  <button class="top-tab" id="nav-timeline" onclick="switchTopNav('timeline',this)">📈 Timeline</button>
+</div>
+
+<!-- ══════════ TIMELINE (top-level, outside sheets) ══════════ -->
+<div id="section-timeline" style="display:none;">
+  <div class="timeline-header">
+    <div>
+      <h2>Timeline</h2>
+      <p>Trends pulled from all your saved sheets — this view is not part of any sheet.</p>
+    </div>
+    <div id="tl-save-ind" style="font-size:12px;color:var(--text3);"></div>
+  </div>
+  <div class="card" style="margin-bottom:10px;">
+    <p class="eyebrow"><span class="accent" style="background:var(--green);"></span>Net Worth Over Time</p>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Each point is one saved sheet. Save a new sheet each month to track your progress.</p>
+    <div class="chart-wrap" id="tl-nw"></div>
+  </div>
+  <div class="grid2" style="margin-bottom:10px;">
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:#EF9F27;"></span>Total Wealth</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Net worth + Pokémon collection combined</p>
+      <div class="chart-wrap" id="tl-wealth"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:#5DCAA5;"></span>Cash Balance</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">BOA checking + savings + HYSA</p>
+      <div class="chart-wrap" id="tl-cash"></div>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:#7F77DD;"></span>Pokémon Collection</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Raw + sealed + graded total</p>
+      <div class="chart-wrap" id="tl-pokemon"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:#378ADD;"></span>Investments</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Taxable + Roth IRA + 401(k)</p>
+      <div class="chart-wrap" id="tl-invest"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SHEETS SECTION ══════════ -->
+<div id="section-sheets">
+
 <!-- ══════════ EXCEL-STYLE SHEET BAR ══════════ -->
 <div class="sheet-bar-wrap">
   <div class="sheet-bar" id="sheetBar"></div>
@@ -269,7 +327,6 @@ button{font-family:inherit;cursor:pointer;}
   <button class="tab active" onclick="switchTab('budget',this)">💸 Budget</button>
   <button class="tab" onclick="switchTab('finances',this)">📊 Finances</button>
   <button class="tab" onclick="switchTab('cards',this)">🃏 Pokémon</button>
-  <button class="tab" onclick="switchTab('timeline',this)">📈 Timeline</button>
 </div>
 
 <!-- ══════════ BUDGET ══════════ -->
@@ -372,7 +429,7 @@ button{font-family:inherit;cursor:pointer;}
       <p class="eyebrow"><span class="accent" style="background:var(--blue);"></span>Investment Allocation <span class="lb lb-calc">calc</span></p>
       <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Hover any slice for ticker details.</p>
       <div class="pie-wrap" id="alloc-pie-wrap">
-        <p style="font-size:12px;color:var(--text3);">Enter holdings below to see your allocation.</p>
+        <p style="font-size:12px;color:var(--text3);">Enter holdings above to see your allocation.</p>
       </div>
     </div>
     <div class="card" style="margin-bottom:0;">
@@ -519,39 +576,6 @@ button{font-family:inherit;cursor:pointer;}
   </div>
 </div>
 
-<!-- ══════════ TIMELINE ══════════ -->
-<div class="page" id="page-timeline">
-  <div class="card" style="margin-bottom:10px;">
-    <p class="eyebrow"><span class="accent" style="background:var(--green);"></span>Net Worth Over Time</p>
-    <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Each point is one saved sheet. Save a new sheet each month to track your progress.</p>
-    <div class="chart-wrap" id="tl-nw"></div>
-  </div>
-  <div class="grid2" style="margin-bottom:10px;">
-    <div class="card" style="margin-bottom:0;">
-      <p class="eyebrow"><span class="accent" style="background:#EF9F27;"></span>Total Wealth</p>
-      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Net worth + Pokémon collection combined</p>
-      <div class="chart-wrap" id="tl-wealth"></div>
-    </div>
-    <div class="card" style="margin-bottom:0;">
-      <p class="eyebrow"><span class="accent" style="background:#5DCAA5;"></span>Cash Balance</p>
-      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">BOA checking + savings + HYSA</p>
-      <div class="chart-wrap" id="tl-cash"></div>
-    </div>
-  </div>
-  <div class="grid2">
-    <div class="card" style="margin-bottom:0;">
-      <p class="eyebrow"><span class="accent" style="background:#7F77DD;"></span>Pokémon Collection</p>
-      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Raw + sealed + graded total</p>
-      <div class="chart-wrap" id="tl-pokemon"></div>
-    </div>
-    <div class="card" style="margin-bottom:0;">
-      <p class="eyebrow"><span class="accent" style="background:#378ADD;"></span>Investments</p>
-      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Taxable + Roth IRA + 401(k)</p>
-      <div class="chart-wrap" id="tl-invest"></div>
-    </div>
-  </div>
-</div>
-
 <!-- ══════════ POKÉMON ══════════ -->
 <div class="page" id="page-cards">
   <div class="tab-toolbar">
@@ -618,14 +642,16 @@ button{font-family:inherit;cursor:pointer;}
   </div>
 </div>
 
+</div><!-- /section-sheets -->
+
 <script>
 const MASTER_KEY = 'budget_sheets_v2';
 
 // ── YOUR BASELINE DATA ────────────────────────────────────────
 const BUDGET_DEFAULTS = {
   income: [
-    {label:'Monthly take-home',hint:'after tax + 401k',val:2755.12},
-    {label:'Paycheck',hint:'bi-weekly · used for 401k calc in Finances',val:1923.08,isGross:true},
+    {label:'Monthly take-home',hint:'after tax + 401k',val:0},
+    {label:'Paycheck',hint:'bi-weekly · used for 401k calc in Finances',val:0,isGross:true},
   ],
   housing: [
     {label:'Rent',hint:'',val:0},
@@ -635,35 +661,35 @@ const BUDGET_DEFAULTS = {
   fixed: [
     {label:'Phone',hint:'',val:0},
     {label:'Subscriptions',hint:'',val:0},
-    {label:'Therapy',hint:'',val:140},
+    {label:'Therapy',hint:'',val:0},
   ],
   variable: [
     {label:'Dining / takeout',hint:'',val:0},
-    {label:"Dunkin'",hint:'',val:32},
+    {label:"Dunkin'",hint:'',val:0},
     {label:'Gas',hint:'car fuel',val:0},
-    {label:'Pokémon cards',hint:'',val:300},
+    {label:'Pokémon cards',hint:'',val:0},
   ],
   savings: [],
 };
 const TAX_DEF = [
-  {ticker:'VOO',name:'US Large Cap',val:1382.9},
-  {ticker:'VOOV',name:'US Large Cap Value',val:666.65},
-  {ticker:'QQQM',name:'Nasdaq / Tech',val:905.73},
-  {ticker:'VT',name:'Global',val:475.08},
-  {ticker:'XLP',name:'Consumer Staples',val:855.6},
-  {ticker:'CASH',name:'Uninvested cash',val:102.35},
+  {ticker:'VOO',name:'US Large Cap',val:0},
+  {ticker:'VOOV',name:'US Large Cap Value',val:0},
+  {ticker:'QQQM',name:'Nasdaq / Tech',val:0},
+  {ticker:'VT',name:'Global',val:0},
+  {ticker:'XLP',name:'Consumer Staples',val:0},
+  {ticker:'CASH',name:'Uninvested cash',val:0},
 ];
 const ROTH_DEF = [
-  {ticker:'VBR',name:'Small Cap Value',val:2654.41},
-  {ticker:'VNQ',name:'REITs',val:2766.22},
-  {ticker:'SCHD',name:'Dividend Growth',val:1986.15},
-  {ticker:'CASH',name:'Uninvested cash',val:235.44},
+  {ticker:'VBR',name:'Small Cap Value',val:0},
+  {ticker:'VNQ',name:'REITs',val:0},
+  {ticker:'SCHD',name:'Dividend Growth',val:0},
+  {ticker:'CASH',name:'Uninvested cash',val:0},
 ];
 const CC_DEBT_DEF = [
   {label:'Blue Card',color:'#378ADD',val:0},
-  {label:'Red Card',color:'#E24B4A',val:459.28},
+  {label:'Red Card',color:'#E24B4A',val:0},
 ];
-const FIN_DEF = {boaChecking:616.41,boaSavings:4097.35,hysaBal:5451.69,k401:2648.12,grossPaycheck:1923.08,k401Pct:8,k401Match:5,payFreq:26,cardsRaw:11083.65,cardsSealed:4148.76,cardsGraded:1038.14};
+const FIN_DEF = {boaChecking:0,boaSavings:0,hysaBal:0,k401:0,grossPaycheck:0,k401Pct:0,k401Match:0,payFreq:26,cardsRaw:0,cardsSealed:0,cardsGraded:0};
 
 // ── SHEET STATE ───────────────────────────────────────────────
 let sheets = [];
@@ -815,11 +841,17 @@ function switchSheet(id){
 }
 
 function newSheet(){
-  saveCurrentSheet(false);
-  const id='sh_'+Date.now(), now=new Date().toISOString(), newData=liveToData();
+  // Snapshot current sheet's live values before switching away
+  const curSh=sheets.find(s=>s.id===activeSheetId);
+  if(curSh){ curSh.data=liveToData(); curSh.updatedAt=new Date().toISOString(); }
+  // New sheet always starts completely blank
+  const id='sh_'+Date.now(), now=new Date().toISOString(), newData=freshSheetData();
   sheets.push({id, name:fmtTabDate(now), createdAt:now, updatedAt:now, data:newData, customName:''});
   activeSheetId=id;
   applyData(newData);
+  ['income','housing','fixed','variable'].forEach(renderSection);
+  ['taxable','roth','watchlist'].forEach(renderHoldings);
+  renderCCDebt(); updateAll();
   saveAll();
   renderSheetBar();
   resetUndo();
@@ -977,6 +1009,22 @@ function secTotal(sec){
   return budget[sec].reduce((a,r)=>{ if(r.isGross)return a; return a+(r.annual?r.annualVal/12:r.val); },0);
 }
 
+// ── TOP-LEVEL NAV (Sheets / Timeline) ────────────────────────
+function switchTopNav(view, btn){
+  document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active-top'));
+  btn.classList.add('active-top');
+  const sheetsEl=document.getElementById('section-sheets');
+  const tlEl=document.getElementById('section-timeline');
+  if(view==='timeline'){
+    sheetsEl.style.display='none';
+    tlEl.style.display='block';
+    renderTimeline();
+  }else{
+    tlEl.style.display='none';
+    sheetsEl.style.display='block';
+  }
+}
+
 // ── TAB SWITCHING ─────────────────────────────────────────────
 let activeTabId='budget';
 
@@ -987,7 +1035,7 @@ function switchTab(name,btn){
   btn.classList.add('active');
   activeTabId=name;
   updateUndoBtn();
-  if(name==='timeline') renderTimeline();
+  if(name==='finances') renderAllocationPie();
 }
 
 // ── PER-TAB UNDO ─────────────────────────────────────────────
@@ -1061,7 +1109,7 @@ function schedSave(tabOverride){
 
 // ── PER-TAB RESET ────────────────────────────────────────────
 function resetBudgetTab(){
-  if(!confirm('Zero all dollar amounts in the Budget tab? Labels stay.'))return;
+  if(!confirm('Zero all dollar amounts in the Budget tab for THIS sheet only? Labels stay. Other sheets are not affected.'))return;
   ['income','housing','fixed','variable','savings'].forEach(sec=>{
     budget[sec].forEach(row=>{row.val=0;if(row.annualVal!==undefined)row.annualVal=0;});
   });
@@ -1070,7 +1118,7 @@ function resetBudgetTab(){
 }
 
 function resetFinancesTab(){
-  if(!confirm('Zero all balances in the Finances tab? Labels and tickers stay.'))return;
+  if(!confirm('Zero all balances in the Finances tab for THIS sheet only? Labels and tickers stay. Other sheets are not affected.'))return;
   taxable.forEach(h=>h.val=0);roth.forEach(h=>h.val=0);ccDebt.forEach(c=>c.val=0);
   ['boaChecking','boaSavings','hysaBal','k401','grossPaycheck','k401Pct','k401Match','cardsRaw','cardsSealed','cardsGraded'].forEach(k=>{
     finVals[k]=0;const el=document.querySelector(`[data-key="${k}"]`);if(el)el.value=0;
@@ -1080,7 +1128,7 @@ function resetFinancesTab(){
 }
 
 function resetCardsTab(){
-  if(!confirm('Zero all Pokémon card values?'))return;
+  if(!confirm('Zero all Pokémon card values for THIS sheet only? Other sheets are not affected.'))return;
   ['cardsRaw','cardsSealed','cardsGraded'].forEach(k=>{finVals[k]=0;const el=document.querySelector(`[data-key="${k}"]`);if(el)el.value=0;});
   updateCards();schedSave('cards');flashSaved('Pokémon values reset to $0');
 }
@@ -1484,6 +1532,10 @@ function drawLineChart(wrId, points, valFn, color, gradId){
 }
 
 function renderTimeline(){
+  // Always capture live values from the active sheet before reading all sheets
+  const activeSh=sheets.find(s=>s.id===activeSheetId);
+  if(activeSh) activeSh.data=liveToData();
+
   const empty='<p style="font-size:12px;color:var(--text3);padding:16px 0;">Save more than one sheet to see trends here.</p>';
   if(sheets.length<2){
     ['tl-nw','tl-wealth','tl-cash','tl-pokemon','tl-invest'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=empty;});
