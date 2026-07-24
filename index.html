@@ -852,12 +852,44 @@ function switchSheet(id){
   flashSaved('Switched to '+(sh.customName||fmtTabDate(sh.updatedAt)));
 }
 
+function carryoverSheetData(prev){
+  const d = freshSheetData();
+  if(!prev) return d;
+
+  // ── Budget: income + housing + fixed carry over (values too — these don't change month-to-month)
+  //    Variable starts blank — spending varies
+  d.budget.income  = JSON.parse(JSON.stringify(prev.budget?.income  || d.budget.income));
+  d.budget.housing = JSON.parse(JSON.stringify(prev.budget?.housing || d.budget.housing));
+  d.budget.fixed   = JSON.parse(JSON.stringify(prev.budget?.fixed   || d.budget.fixed));
+
+  // ── Finances: carry 401k settings, NOT balance; cash balances start at 0
+  const pf = prev.finVals || {};
+  d.finVals.k401Pct      = pf.k401Pct      || 0;
+  d.finVals.k401Match    = pf.k401Match     || 0;
+  d.finVals.payFreq      = pf.payFreq       || 26;
+  d.finVals.grossPaycheck= pf.grossPaycheck || 0;
+
+  // ── Holdings: carry tickers + names, zero values
+  d.taxable  = (prev.taxable  || []).map(h=>({...h, val:0}));
+  d.roth     = (prev.roth     || []).map(h=>({...h, val:0}));
+  d.watchlist= JSON.parse(JSON.stringify(prev.watchlist || []));
+
+  // ── Debt: carry card names + colors + debt names, zero balances
+  d.ccDebt    = (prev.ccDebt    || []).map(c=>({...c, val:0}));
+  d.otherDebt = (prev.otherDebt || []).map(c=>({...c, val:0}));
+
+  // ── Pokémon: carry category names, zero values
+  d.cardCategories = (prev.cardCategories || []).map(c=>({...c, val:0}));
+
+  return d;
+}
+
 function newSheet(){
   // Snapshot current sheet's live values before switching away
   const curSh=sheets.find(s=>s.id===activeSheetId);
   if(curSh){ curSh.data=liveToData(); curSh.updatedAt=new Date().toISOString(); }
-  // New sheet always starts completely blank
-  const id='sh_'+Date.now(), now=new Date().toISOString(), newData=freshSheetData();
+  // New sheet carries over structure from current sheet
+  const id='sh_'+Date.now(), now=new Date().toISOString(), newData=carryoverSheetData(curSh?.data);
   sheets.push({id, name:fmtTabDate(now), createdAt:now, updatedAt:now, data:newData, customName:''});
   activeSheetId=id;
   applyData(newData);
