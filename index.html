@@ -214,6 +214,14 @@ button{font-family:inherit;cursor:pointer;}
 .pie-leg-val{font-weight:600;min-width:68px;text-align:right;}
 .pie-center-label{text-anchor:middle;dominant-baseline:central;}
 
+/* ── HYSA PERIOD BUTTONS ── */
+.hysa-period-btn{padding:5px 14px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s;}
+.hysa-period-btn:hover:not(.active-period){border-color:var(--border2);color:var(--text1);}
+.hysa-period-btn.active-period{background:var(--green);border-color:var(--green);color:#fff;font-weight:600;}
+.hysa-table td,.hysa-table th{padding:7px 10px;}
+.hysa-table tr{border-bottom:1px solid var(--border);}
+.hysa-table thead tr{border-bottom:2px solid var(--border);}
+
 /* ── NW TREND CHART ── */
 .chart-wrap{width:100%;overflow-x:auto;}
 .chart-wrap svg{display:block;min-width:200px;}
@@ -255,6 +263,7 @@ button{font-family:inherit;cursor:pointer;}
 <div class="top-nav">
   <button class="top-tab active-top" id="nav-sheets" onclick="switchTopNav('sheets',this)">📋 Sheets</button>
   <button class="top-tab" id="nav-timeline" onclick="switchTopNav('timeline',this)">📈 Timeline</button>
+  <button class="top-tab" id="nav-hysa" onclick="switchTopNav('hysa',this)">💰 HYSA Projections</button>
 </div>
 
 <!-- ══════════ TIMELINE (top-level, outside sheets) ══════════ -->
@@ -273,9 +282,9 @@ button{font-family:inherit;cursor:pointer;}
   </div>
   <div class="grid2" style="margin-bottom:10px;">
     <div class="card" style="margin-bottom:0;">
-      <p class="eyebrow"><span class="accent" style="background:#EF9F27;"></span>Total Wealth</p>
-      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Net worth + Pokémon collection combined</p>
-      <div class="chart-wrap" id="tl-wealth"></div>
+      <p class="eyebrow"><span class="accent" style="background:#1D9E75;"></span>HYSA Balance</p>
+      <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Capital One HYSA actual balance per sheet</p>
+      <div class="chart-wrap" id="tl-hysa"></div>
     </div>
     <div class="card" style="margin-bottom:0;">
       <p class="eyebrow"><span class="accent" style="background:#5DCAA5;"></span>Cash Balance</p>
@@ -294,6 +303,96 @@ button{font-family:inherit;cursor:pointer;}
       <p style="font-size:11px;color:var(--text3);margin-bottom:12px;">Taxable + Roth IRA + 401(k)</p>
       <div class="chart-wrap" id="tl-invest"></div>
     </div>
+  </div>
+</div>
+
+<!-- ══════════ HYSA PROJECTIONS ══════════ -->
+<div id="section-hysa" style="display:none;">
+  <div class="timeline-header">
+    <div>
+      <h2>HYSA Projections</h2>
+      <p>Project your Capital One HYSA with compound interest. APY and contribution settings persist across all sheets.</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-bottom:10px;">
+
+    <!-- LEFT: Inputs -->
+    <div class="card" style="margin-bottom:0;">
+      <p class="eyebrow"><span class="accent" style="background:var(--green);"></span>Calculator Inputs</p>
+
+      <div class="cash-row">
+        <div style="flex:1;">
+          <p style="font-size:13px;">Starting Balance <span class="lb lb-budget">← Finances</span></p>
+          <p style="font-size:11px;color:var(--text3);margin-top:2px;">synced from current sheet's HYSA balance</p>
+        </div>
+        <div class="mc" style="min-width:110px;text-align:right;"><p class="mc-val" id="hysa-start-bal">—</p></div>
+      </div>
+
+      <div class="cash-row">
+        <div style="flex:1;">
+          <p style="font-size:13px;">Annual APY</p>
+          <p style="font-size:11px;color:var(--text3);margin-top:2px;">update when Capital One changes the rate</p>
+        </div>
+        <div class="pct-val">
+          <input type="number" id="hysa-apy-inp" value="3.80" min="0" max="20" step="0.01"
+            oninput="hysaSettings.apy=parseFloat(this.value)||0;saveHYSASettings();updateHYSACalc();">
+          <span class="sym">%</span>
+        </div>
+      </div>
+
+      <div class="cash-row">
+        <div style="flex:1;">
+          <p style="font-size:13px;">Monthly Contribution</p>
+          <p style="font-size:11px;color:var(--text3);margin-top:2px;">amount you deposit each month</p>
+        </div>
+        <div class="cash-val">
+          <span class="sym">$</span>
+          <input type="number" id="hysa-contrib-inp" value="0" min="0" step="50"
+            oninput="hysaSettings.monthlyContrib=parseFloat(this.value)||0;saveHYSASettings();updateHYSACalc();">
+        </div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:8px;">Projection Period</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="hysa-period-btn active-period" onclick="setHYSAPeriod(1,this)">1 yr</button>
+          <button class="hysa-period-btn" onclick="setHYSAPeriod(2,this)">2 yr</button>
+          <button class="hysa-period-btn" onclick="setHYSAPeriod(3,this)">3 yr</button>
+          <button class="hysa-period-btn" onclick="setHYSAPeriod(5,this)">5 yr</button>
+          <button class="hysa-period-btn" onclick="setHYSAPeriod(10,this)">10 yr</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Stats + Chart -->
+    <div style="margin-bottom:0;">
+      <div class="grid3" style="margin-bottom:10px;">
+        <div class="mc">
+          <p class="mc-label">Projected Balance</p>
+          <p class="mc-val" style="color:var(--green);font-size:18px;" id="hysa-proj-bal">—</p>
+        </div>
+        <div class="mc">
+          <p class="mc-label">You Contributed</p>
+          <p class="mc-val" id="hysa-total-contrib">—</p>
+        </div>
+        <div class="mc" style="background:var(--green-bg);">
+          <p class="mc-label">Interest Earned</p>
+          <p class="mc-val" style="color:var(--green);" id="hysa-interest">—</p>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0;">
+        <p class="eyebrow"><span class="accent" style="background:var(--green);"></span>Growth Curve &nbsp;<span id="hysa-chart-lbl" style="font-size:11px;color:var(--text3);font-weight:400;"></span></p>
+        <div class="chart-wrap" id="hysa-chart" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Year-by-year table -->
+  <div class="card">
+    <p class="eyebrow"><span class="accent" style="background:var(--green);"></span>Year-by-Year Breakdown</p>
+    <div style="overflow-x:auto;"><table class="hysa-table" style="width:100%;border-collapse:collapse;font-size:12px;" id="hysa-tbl"></table></div>
   </div>
 </div>
 
@@ -447,7 +546,7 @@ button{font-family:inherit;cursor:pointer;}
           <div class="cash-val"><span class="sym">$</span><input type="number" data-key="boaSavings" value="0" min="0" class="fin-inp"></div>
         </div>
         <div class="cash-row">
-          <div style="flex:1;"><p style="font-size:13px;">Capital One HYSA</p><p style="font-size:11px;color:var(--text3);margin-top:1px;">3.10% APY</p></div>
+          <div style="flex:1;"><p style="font-size:13px;">Capital One HYSA</p></div>
           <div class="cash-val"><span class="sym">$</span><input type="number" data-key="hysaBal" value="0" min="0" class="fin-inp"></div>
         </div>
         <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:4px;border-top:1px solid var(--border);">
@@ -686,6 +785,10 @@ let sheets = [];
 let activeSheetId = null;
 let budget, taxable, roth, watchlist, ccDebt, otherDebt, cardCategories, finVals;
 
+// ── HYSA SETTINGS (global, not per-sheet) ────────────────────
+let hysaSettings = {apy: 3.80, monthlyContrib: 0};
+let hysaPeriodYrs = 1;
+
 function freshSheetData(){
   return {
     budget:         JSON.parse(JSON.stringify(BUDGET_DEFAULTS)),
@@ -765,7 +868,7 @@ function calcNWFromData(data){
     cardsTotal = (fv.cardsRaw||0)+(fv.cardsSealed||0)+(fv.cardsGraded||0);
   }
   const nw = cashTotal+portTotal-ccTotal;
-  return {cashTotal,taxTotal,rothTotal,portTotal,ccTotal,cardsTotal,nw,totalWealth:nw+cardsTotal};
+  return {cashTotal,taxTotal,rothTotal,portTotal,ccTotal,cardsTotal,nw,totalWealth:nw+cardsTotal,hysaBal:fv.hysaBal||0};
 }
 
 // ── SHEET MANAGEMENT ─────────────────────────────────────────
@@ -1063,12 +1166,17 @@ function switchTopNav(view, btn){
   btn.classList.add('active-top');
   const sheetsEl=document.getElementById('section-sheets');
   const tlEl=document.getElementById('section-timeline');
+  const hysaEl=document.getElementById('section-hysa');
+  sheetsEl.style.display='none';
+  tlEl.style.display='none';
+  hysaEl.style.display='none';
   if(view==='timeline'){
-    sheetsEl.style.display='none';
     tlEl.style.display='block';
     renderTimeline();
-  }else{
-    tlEl.style.display='none';
+  } else if(view==='hysa'){
+    hysaEl.style.display='block';
+    renderHYSA();
+  } else {
     sheetsEl.style.display='block';
   }
 }
@@ -1560,6 +1668,144 @@ function hideChartTip(){document.getElementById('chartTooltip').style.display='n
 
 function updateAll(){updateBudget();updateFinances();updateCards();}
 
+// ── HYSA PROJECTIONS ─────────────────────────────────────────
+let _hysaSaveTimer = null;
+function saveHYSASettings(){
+  clearTimeout(_hysaSaveTimer);
+  _hysaSaveTimer = setTimeout(()=>saveAll(), 500);
+}
+
+function setHYSAPeriod(yrs, btn){
+  hysaPeriodYrs = yrs;
+  document.querySelectorAll('.hysa-period-btn').forEach(b=>b.classList.remove('active-period'));
+  btn.classList.add('active-period');
+  updateHYSACalc();
+}
+
+function renderHYSA(){
+  // Sync inputs from stored settings
+  const apyInp = document.getElementById('hysa-apy-inp');
+  if(apyInp) apyInp.value = hysaSettings.apy;
+  const cInp = document.getElementById('hysa-contrib-inp');
+  if(cInp) cInp.value = hysaSettings.monthlyContrib;
+  updateHYSACalc();
+}
+
+function updateHYSACalc(){
+  const startBal = gF('hysaBal');
+  const sbEl = document.getElementById('hysa-start-bal');
+  if(sbEl) sbEl.textContent = fmt(startBal);
+
+  const apy = hysaSettings.apy || 0;
+  const contrib = hysaSettings.monthlyContrib || 0;
+  const months = hysaPeriodYrs * 12;
+  const monthlyRate = apy / 100 / 12;
+
+  // Build month-by-month data
+  let balance = startBal, totalInterest = 0;
+  const pts = [{month:0, balance:startBal, totalInterest:0}];
+  for(let m = 1; m <= months; m++){
+    const intThisMonth = balance * monthlyRate;
+    balance = balance + intThisMonth + contrib;
+    totalInterest += intThisMonth;
+    pts.push({month:m, balance, totalInterest});
+  }
+
+  const totalContribs = contrib * months;
+
+  // Stat cards
+  const setEl = (id,v)=>{ const e=document.getElementById(id); if(e)e.textContent=v; };
+  setEl('hysa-proj-bal', fmt(balance));
+  setEl('hysa-total-contrib', fmt(totalContribs));
+  setEl('hysa-interest', fmt(totalInterest));
+  const lblEl = document.getElementById('hysa-chart-lbl');
+  if(lblEl) lblEl.textContent = hysaPeriodYrs+(hysaPeriodYrs===1?' year':' years')+' · '+apy+'% APY';
+
+  // Chart — yearly points (monthly for ≤2yr)
+  let chartPts;
+  if(hysaPeriodYrs <= 2){
+    chartPts = pts.filter(p=>p.month%3===0||p.month===months).map(p=>({
+      label: p.month===0?'Now': p.month%12===0?'Yr '+(p.month/12):'Mo '+p.month,
+      val: p.balance
+    }));
+  } else {
+    chartPts = [];
+    for(let y=0; y<=hysaPeriodYrs; y++){
+      const p = pts[Math.min(y*12, pts.length-1)];
+      chartPts.push({label: y===0?'Now':'Yr '+y, val: p.balance});
+    }
+  }
+  drawHYSAChart(chartPts);
+  renderHYSATable(pts, startBal, contrib);
+}
+
+function drawHYSAChart(points){
+  const wrap = document.getElementById('hysa-chart');
+  if(!wrap) return;
+  if(!points || points.length < 2){
+    wrap.innerHTML='<p style="font-size:12px;color:var(--text3);padding:12px 0;">Enter an APY to see projections.</p>';
+    return;
+  }
+  const W = Math.max(wrap.clientWidth||400,300), H = 160;
+  const pad = {l:68,r:16,t:12,b:30};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  const vals = points.map(p=>p.val);
+  const minV=Math.min(...vals), maxV=Math.max(...vals), range=maxV-minV||1;
+  const xOf=i=>pad.l+i/(points.length-1||1)*iW;
+  const yOf=v=>pad.t+iH-(v-minV)/range*iH;
+  const color='#1D9E75';
+  const pathD=points.map((p,i)=>(i===0?'M':'L')+xOf(i).toFixed(1)+','+yOf(p.val).toFixed(1)).join(' ');
+  const fillD=pathD+` L${xOf(points.length-1).toFixed(1)},${(pad.t+iH).toFixed(1)} L${pad.l},${(pad.t+iH).toFixed(1)} Z`;
+  const ticks=[minV,maxV].map(v=>`
+    <line x1="${pad.l-4}" y1="${yOf(v).toFixed(1)}" x2="${W-pad.r}" y2="${yOf(v).toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="${pad.l-7}" y="${(yOf(v)+4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--text3)">${fmt(v)}</text>`).join('');
+  const dots=points.map((p,i)=>`
+    <circle class="chart-dot" cx="${xOf(i).toFixed(1)}" cy="${yOf(p.val).toFixed(1)}" r="4" fill="${color}" stroke="var(--surface)" stroke-width="2"
+      onmouseenter="showChartTip(event,'${p.label}','${fmt(p.val)}')"
+      onmouseleave="hideChartTip()"/>`).join('');
+  const xLabels=[
+    `<text x="${xOf(0).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--text3)">${points[0].label}</text>`,
+    points.length>1?`<text x="${xOf(points.length-1).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--text3)">${points[points.length-1].label}</text>`:''
+  ].join('');
+  wrap.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="hysaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".22"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    ${ticks}<path d="${fillD}" fill="url(#hysaGrad)"/>
+    <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}${xLabels}</svg>`;
+}
+
+function renderHYSATable(pts, startBal, monthlyContrib){
+  const el = document.getElementById('hysa-tbl');
+  if(!el) return;
+  const rows = [];
+  for(let y=1; y<=hysaPeriodYrs; y++){
+    const idx = Math.min(y*12, pts.length-1);
+    const p = pts[idx];
+    const prev = pts[Math.min((y-1)*12, pts.length-1)];
+    rows.push({
+      year: y,
+      balance: p.balance,
+      yearInterest: p.totalInterest - prev.totalInterest,
+      totalInterest: p.totalInterest,
+      totalContribs: monthlyContrib * y * 12
+    });
+  }
+  const th = (t,r='right')=>`<th style="text-align:${r};font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;">${t}</th>`;
+  const td = (v,c='',b=false)=>`<td style="text-align:right;${c?'color:'+c+';':''}${b?'font-weight:600;':''}">${v}</td>`;
+  el.innerHTML=`<thead><tr>
+    ${th('Year','left')}${th('Balance')}${th('Interest (yr)')}${th('Total Interest')}${th('Contributions')}
+  </tr></thead><tbody>
+    <tr><td style="font-weight:500;">Now</td>${td(fmt(startBal),'',true)}${td('—')}${td('—')}${td('—')}</tr>
+    ${rows.map(r=>`<tr>
+      <td style="font-weight:500;">Year ${r.year}</td>
+      ${td(fmt(r.balance),'var(--green)',true)}
+      ${td('+'+fmt(r.yearInterest),'var(--green)')}
+      ${td(fmt(r.totalInterest),'var(--text2)')}
+      ${td(fmt(r.totalContribs),'var(--text2)')}
+    </tr>`).join('')}
+  </tbody>`;
+}
+
 // ── TIMELINE CHARTS ───────────────────────────────────────────
 function drawLineChart(wrId, points, valFn, color, gradId){
   const wrap=document.getElementById(wrId);if(!wrap)return;
@@ -1598,7 +1844,7 @@ function renderTimeline(){
 
   const empty='<p style="font-size:12px;color:var(--text3);padding:16px 0;">Save more than one sheet to see trends here.</p>';
   if(sheets.length<2){
-    ['tl-nw','tl-wealth','tl-cash','tl-pokemon','tl-invest'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=empty;});
+    ['tl-nw','tl-hysa','tl-cash','tl-pokemon','tl-invest'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=empty;});
     return;
   }
   const sorted=sheets.map(sh=>{
@@ -1606,11 +1852,11 @@ function renderTimeline(){
     const r=calcNWFromData(d);
     return{label:sh.customName||fmtTabDate(sh.createdAt||sh.updatedAt),date:new Date(sh.createdAt||sh.updatedAt),...r};
   }).sort((a,b)=>a.date-b.date);
-  drawLineChart('tl-nw',    sorted, p=>p.nw,          '#1D9E75','tlGrad1');
-  drawLineChart('tl-wealth', sorted, p=>p.totalWealth, '#EF9F27','tlGrad2');
-  drawLineChart('tl-cash',  sorted, p=>p.cashTotal,   '#5DCAA5','tlGrad3');
-  drawLineChart('tl-pokemon',sorted, p=>p.cardsTotal,  '#7F77DD','tlGrad4');
-  drawLineChart('tl-invest', sorted, p=>p.portTotal,   '#378ADD','tlGrad5');
+  drawLineChart('tl-nw',     sorted, p=>p.nw,        '#1D9E75','tlGrad1');
+  drawLineChart('tl-hysa',   sorted, p=>p.hysaBal,   '#1D9E75','tlGrad2');
+  drawLineChart('tl-cash',   sorted, p=>p.cashTotal, '#5DCAA5','tlGrad3');
+  drawLineChart('tl-pokemon',sorted, p=>p.cardsTotal,'#7F77DD','tlGrad4');
+  drawLineChart('tl-invest', sorted, p=>p.portTotal, '#378ADD','tlGrad5');
 }
 
 // fin-inp listener
@@ -1654,7 +1900,7 @@ function saveAll(){
   if(sh){ sh.data=liveToData(); sh.updatedAt=new Date().toISOString(); }
   sb.from('budget_data')
     .upsert(
-      {user_id:currentUser.id, sheets:{sheets:JSON.parse(JSON.stringify(sheets)),activeSheetId}, updated_at:new Date().toISOString()},
+      {user_id:currentUser.id, sheets:{sheets:JSON.parse(JSON.stringify(sheets)),activeSheetId,hysaSettings:JSON.parse(JSON.stringify(hysaSettings))}, updated_at:new Date().toISOString()},
       {onConflict:'user_id'}
     )
     .then(({error})=>{
@@ -1680,6 +1926,7 @@ async function loadFromCloud(){
   });
   if(!sheets.find(s=>s.id===activeSheetId)) activeSheetId=sheets[sheets.length-1].id;
   applyData(sheets.find(s=>s.id===activeSheetId).data);
+  if(data.sheets.hysaSettings) hysaSettings={...hysaSettings,...data.sheets.hysaSettings};
   flashSaved('Synced ☁');
   return true;
 }
